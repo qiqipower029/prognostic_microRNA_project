@@ -42,14 +42,17 @@ colnames(new) <- (name_tmp)
 EV.geneglobe.new = new %>% as.data.frame()
 EV.geneglobe.new = rownames_to_column(EV.geneglobe.new)
 colnames(EV.geneglobe.new)[1] = "Patient ID"
+
+# Adverse pathology
+adverse.pathology$`Adverse Pathology` = ifelse(adverse.pathology$`Adverse Pathology` == "99", NA, adverse.pathology$`Adverse Pathology`)
 ```
 
 ## Checking distribution for each microRNA
 ```{r distribution}
 # checking distribution for serum
 normality.test.serum = data.frame(
-  micrioRNA = colnames(serum.geneglobe.new[-1]),
-  p.value = numeric(length(micrioRNA))
+  microRNA = colnames(serum.geneglobe.new[-1]),
+  p.value = numeric(61)
 )
 
 for (i in 1:61) {
@@ -59,8 +62,8 @@ for (i in 1:61) {
 
 # checking distribution for EV
 normality.test.EV = data.frame(
-  micrioRNA = colnames(EV.geneglobe.new[-1]),
-  p.value = numeric(length(micrioRNA))
+  microRNA = colnames(EV.geneglobe.new[-1]),
+  p.value = numeric(61)
 )
 
 for (i in 1:61) {
@@ -76,7 +79,9 @@ normality.test.EV
 Conclusion: None of the microRNA has the normal distribution. 
 
 ## Univariate GLM fitting
-```{r univariate GLM}
+
+#### Biopsy Grade
+```{r datafile combine}
 # datafile combine
 # left join for grade groups
 serum.grade = left_join(serum.geneglobe.new, biopsy.grade, by = "Patient ID")
@@ -87,3 +92,92 @@ serum.all = left_join(serum.grade, adverse.pathology, by = "Patient ID")
 EV.all = left_join(EV.grade, adverse.pathology, by = "Patient ID")
 ```
 
+```{r Univariate GLM}
+# univariate GLM
+grade.serum.result = data.frame(
+  microRNA = colnames(serum.geneglobe.new)[-1],
+  p.value = numeric(61)
+)
+for (i in 1:61) {
+  model = glm(formula = serum.all$`Biopsy Grade Group`~serum.all[,i+1])
+  result = summary(model)
+  grade.serum.result$p.value[i] = result$coefficients[2,4]
+}
+
+grade.EV.result = data.frame(
+  microRNA = colnames(EV.geneglobe.new)[-1],
+  p.value = numeric(61)
+)
+
+for (i in 1:61) {
+  model = glm(formula = EV.all$`Biopsy Grade Group`~EV.all[,i+1])
+  result = summary(model)
+  grade.EV.result$p.value[i] = result$coefficients[2,4]
+}
+
+# Display result
+grade.serum.result
+grade.EV.result
+```
+
+Now we want to focus on the significant predictors.
+```{r model selection}
+grade.serum.result.significant = 
+  grade.serum.result %>% filter(p.value <= 0.05)
+
+grade.EV.result.significant = 
+  grade.EV.result %>% filter(p.value <= 0.05)
+
+# backward selection for serum/grade model
+library(MASS)
+fullmodel1 = glm(data = serum.all, formula = `Biopsy Grade Group`~`hsa-miR-1246`+`hsa-miR-214-3p`+`hsa-miR-301a-3p`)
+serum.grade.final = stepAIC(object = fullmodel1, direction = "backward")
+```
+
+Therefore the final model only contains hsa-miR-1246 and hsa-miR-214-3p for serum/biopsy grade.
+The final model only contains hsa-miR-31-5p for EV/biopsy grade.
+
+#### Adverse Pathology
+```{r GLM for adverse pathology}
+# univariate GLM
+adverse.serum.result = data.frame(
+  microRNA = colnames(serum.geneglobe.new)[-1],
+  p.value = numeric(61)
+)
+for (i in 1:61) {
+  model = glm(formula = serum.all$`Adverse Pathology`~serum.all[,i+1], family = "binomial")
+  result = summary(model)
+  adverse.serum.result$p.value[i] = result$coefficients[2,4]
+}
+
+adverse.EV.result = data.frame(
+  microRNA = colnames(EV.geneglobe.new)[-1],
+  p.value = numeric(61)
+)
+
+for (i in 1:61) {
+  model = glm(formula = EV.all$`Adverse Pathology`~EV.all[,i+1], family = "binomial")
+  result = summary(model)
+  adverse.EV.result$p.value[i] = result$coefficients[2,4]
+}
+
+# Display result
+adverse.serum.result
+adverse.EV.result
+```
+
+Now we want to focus on the significant predictors.
+```{r model selection2}
+adverse.serum.result.significant = 
+  adverse.serum.result %>% filter(p.value <= 0.05)
+
+adverse.EV.result.significant = 
+  adverse.EV.result %>% filter(p.value <= 0.05)
+
+# backward selection for EV/adverse pathology model
+library(MASS)
+fullmodel2 = glm(data = EV.all, formula = `Adverse Pathology`~`hsa-let-7a-5p`+`hsa-miR-26b-5p`+`hsa-miR-301a-3p`, family = "binomial")
+EV.adverse.final = stepAIC(object = fullmodel2, direction = "backward")
+```
+
+The final model only contains hsa-let-7a-5p for EV/adverse pathology.
