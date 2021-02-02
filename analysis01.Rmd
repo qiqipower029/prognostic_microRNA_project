@@ -14,6 +14,9 @@ library(tidyverse)
 
 ## Import datafile
 ```{r import data}
-
+biopsy.grade = readxl::read_excel("./data/GG_AP_ClinicalOutcomes_Biostats.xlsx", sheet = "Biopsy Grade Group")
+adverse.pathology = readxl::read_excel("./data/GG_AP_ClinicalOutcomes_Biostats.xlsx", sheet = "Adverse Pathology")
+serum.geneglobe = readxl::read_excel("./data/Serum_SerumEV_GeneGlobeRQ_CT35.xlsx", sheet = "Serum_GeneGlobeRQ_CT35")
+EV.geneglobe = readxl::read_excel("./data/Serum_SerumEV_GeneGlobeRQ_CT35.xlsx", sheet = "EV_GeneGlobeRQ_CT35")
 ```
 
