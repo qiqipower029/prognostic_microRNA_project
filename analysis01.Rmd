@@ -1,5 +1,5 @@
 ---
-title: "distribution/regression"
+title: "Analysis 2/1"
 author: "Jieqi Tu"
 date: "2/1/2021"
 output: pdf_document
