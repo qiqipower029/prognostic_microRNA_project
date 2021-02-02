@@ -20,3 +20,29 @@ serum.geneglobe = readxl::read_excel("./data/Serum_SerumEV_GeneGlobeRQ_CT35.xlsx
 EV.geneglobe = readxl::read_excel("./data/Serum_SerumEV_GeneGlobeRQ_CT35.xlsx", sheet = "EV_GeneGlobeRQ_CT35")
 ```
 
+## Tidy Data
+```{r tidy data}
+# change format from wide to long
+# serum
+new = t(serum.geneglobe)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+serum.geneglobe.new = new
+
+# EV
+new = t(EV.geneglobe)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+EV.geneglobe.new = new
+```
+
+## Checking distribution for each microRNA
+```{r distribution}
+# checking distribution
+
+```
+
