@@ -72,8 +72,8 @@ for (i in 1:61) {
 }
 
 # Results display
-normality.test.serum
-normality.test.EV
+normality.test.serum 
+normality.test.EV 
 ```
 
 Conclusion: None of the microRNA has the normal distribution. 
@@ -125,8 +125,12 @@ Now we want to focus on the significant predictors.
 grade.serum.result.significant = 
   grade.serum.result %>% filter(p.value <= 0.05)
 
+grade.serum.result.significant
+
 grade.EV.result.significant = 
   grade.EV.result %>% filter(p.value <= 0.05)
+
+grade.EV.result.significant
 
 # backward selection for serum/grade model
 library(MASS)
@@ -171,8 +175,12 @@ Now we want to focus on the significant predictors.
 adverse.serum.result.significant = 
   adverse.serum.result %>% filter(p.value <= 0.05)
 
+adverse.serum.result.significant
+
 adverse.EV.result.significant = 
   adverse.EV.result %>% filter(p.value <= 0.05)
+
+adverse.EV.result.significant
 
 # backward selection for EV/adverse pathology model
 library(MASS)
