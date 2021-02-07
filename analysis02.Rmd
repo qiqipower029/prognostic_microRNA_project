@@ -7,8 +7,79 @@ editor_options:
   chunk_output_type: console
 ---
 
-
+## Import data
 ```{r data import}
+biopsy.grade = readxl::read_excel("./data/GG_AP_ClinicalOutcomes_Biostats.xlsx", sheet = "Biopsy Grade Group")
+adverse.pathology = readxl::read_excel("./data/GG_AP_ClinicalOutcomes_Biostats.xlsx", sheet = "Adverse Pathology")
+serum.globalCTMean = readxl::read_excel("./data/Serum_AdjustedRQ_CT35_BioStats.xlsx", sheet = "GlobalCTMean RQ")
+serum.geNorm = readxl::read_excel("./data/Serum_AdjustedRQ_CT35_BioStats.xlsx", sheet = "geNorm RQ")
+serum.NormFinder = readxl::read_excel("./data/Serum_AdjustedRQ_CT35_BioStats.xlsx", sheet = "geNorm NormFinder RQ")
+EV.globalCTMean = readxl::read_excel("./data/SerumEV_AdjustedRQ_CT35_BioStats.xlsx", sheet = "GlobalCTMean RQ")
+EV.geNorm = readxl::read_excel("./data/SerumEV_AdjustedRQ_CT35_BioStats.xlsx", sheet = "geNorm RQ")
+EV.NormFinder = readxl::read_excel("./data/SerumEV_AdjustedRQ_CT35_BioStats.xlsx", sheet = "geNorm NormFinder RQ")
+```
 
+## Tidy data
+```{r tidy data}
+library(tidyverse)
+# Serum global CT mean
+new = t(serum.globalCTMean)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+serum.globalCTMean.new = new %>% as.data.frame()
+serum.globalCTMean.new = rownames_to_column(serum.globalCTMean.new)
+colnames(serum.globalCTMean.new)[1] = "Patient ID"
+
+# Serum geNorm
+new = t(serum.geNorm)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+serum.geNorm.new = new %>% as.data.frame()
+serum.geNorm.new = rownames_to_column(serum.globalCTMean.new)
+colnames(serum.globalCTMean.new)[1] = "Patient ID"
+
+# Serum geNorm Finder
+new = t(serum.NormFinder)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+serum.NormFinder.new = new %>% as.data.frame()
+serum.NormFinder.new = rownames_to_column(serum.NormFinder.new)
+colnames(serum.NormFinder.new)[1] = "Patient ID"
+
+# EV global CT Mean
+new = t(EV.globalCTMean)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+EV.globalCTMean.new = new %>% as.data.frame()
+EV.globalCTMean.new = rownames_to_column(EV.globalCTMean.new)
+colnames(EV.globalCTMean.new)[1] = "Patient ID"
+
+# EV geNorm
+new = t(EV.geNorm)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+EV.geNorm.new = new %>% as.data.frame()
+EV.geNorm.new = rownames_to_column(EV.geNorm.new)
+colnames(EV.geNorm.new)[1] = "Patient ID"
+
+# EV geNorm NormFinder
+new = t(EV.NormFinder)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+EV.NormFinder.new = new %>% as.data.frame()
+EV.NormFinder.new = rownames_to_column(EV.NormFinder.new)
+colnames(EV.geNorm.new)[1] = "Patient ID"
 ```
 
