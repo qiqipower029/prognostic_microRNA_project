@@ -1,0 +1,14 @@
+---
+title: "Analysis 2/6"
+author: "Jieqi Tu"
+date: "2/6/2021"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r data import}
+
+```
+
