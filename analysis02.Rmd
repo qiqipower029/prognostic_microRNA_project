@@ -421,35 +421,35 @@ for (i in 1:61) {
 adverse.EV.CTMean.result = adverse.EV.CTMean.result[order(adverse.EV.CTMean.result$p.value),]
 
 # EV geNorm
-grade.EV.geNorm.result = data.frame(
+adverse.EV.geNorm.result = data.frame(
   microRNA = colnames(EV.geNorm.new)[-1],
   p.value = numeric(61)
 )
 for (i in 1:61) {
-  model = glm(formula = EV.grade.CTMean$`Biopsy Grade Group`~ EV.geNorm.new[,i+1])
+  model = glm(formula = EV.adverse.CTMean$`Adverse Pathology`~ EV.geNorm.new[,i+1], family = "binomial")
   result = summary(model)
-  grade.EV.geNorm.result$p.value[i] = result$coefficients[2,4]
+  adverse.EV.geNorm.result$p.value[i] = result$coefficients[2,4]
 }
 
-grade.EV.geNorm.result = grade.EV.geNorm.result[order(grade.EV.geNorm.result$p.value),]
+adverse.EV.geNorm.result = adverse.EV.geNorm.result[order(adverse.EV.geNorm.result$p.value),]
 
 
 # EV Norm Finder
-grade.EV.NormFinder.result = data.frame(
+adverse.EV.NormFinder.result = data.frame(
   microRNA = colnames(EV.NormFinder.new2)[-1],
   p.value = numeric(60)
 )
 for (i in 1:60) {
-  model = glm(formula = EV.grade.CTMean$`Biopsy Grade Group`~ EV.NormFinder.new2[,i+1])
+  model = glm(formula = EV.grade.CTMean$`Adverse Pathology`~ EV.NormFinder.new2[,i+1], family = "binomial")
   result = summary(model)
-  grade.EV.NormFinder.result$p.value[i] = result$coefficients[2,4]
+  adverse.EV.NormFinder.result$p.value[i] = result$coefficients[2,4]
 }
 
-grade.EV.NormFinder.result = grade.EV.NormFinder.result[order(grade.EV.NormFinder.result$p.value),]
+adverse.EV.NormFinder.result = adverse.EV.NormFinder.result[order(adverse.EV.NormFinder.result$p.value),]
 
 # Collect the results
-grade.serum.GLM.result = write.xlsx(list(grade.serum.result, grade.serum.CTMean.result, grade.serum.geNorm.result, grade.serum.NormFinder.result), file = "serumGLMresults.xlsx")
-grade.EV.GLM.result = write.xlsx(list(grade.EV.result, grade.EV.CTMean.result, grade.EV.geNorm.result, grade.EV.NormFinder.result), file = "EVGLMresults.xlsx")
+adverse.serum.GLM.result = write.xlsx(list(adverse.serum.result, adverse.serum.CTMean.result, adverse.serum.geNorm.result, adverse.serum.NormFinder.result), file = "APserumGLMresults.xlsx")
+adverse.EV.GLM.result = write.xlsx(list(adverse.EV.result, adverse.EV.CTMean.result, adverse.EV.geNorm.result, adverse.EV.NormFinder.result), file = "APEVGLMresults.xlsx")
 ```
 
 ## Variable selection
@@ -503,4 +503,69 @@ grade.EV.NormFinder.result.sigficant
 ```
 
 
+
+```{r variable selection2}
+# get the significant results
+adverse.serum.result.significant = 
+  adverse.serum.result %>% filter(p.value <= 0.05)
+
+adverse.serum.result.significant
+
+adverse.EV.result.significant = 
+  adverse.EV.result %>% filter(p.value <= 0.05)
+
+adverse.EV.result.significant
+
+# serum CT mean
+adverse.serum.CTMean.result.sigficant = 
+  adverse.serum.CTMean.result %>% filter(p.value <= 0.05)
+
+adverse.serum.CTMean.result.sigficant
+
+# serum geNorm
+adverse.serum.geNorm.result.sigficant = 
+  adverse.serum.geNorm.result %>% filter(p.value <= 0.05)
+
+adverse.serum.geNorm.result.sigficant
+
+# serum Norm Finder
+adverse.serum.NormFinder.result.sigficant = 
+  adverse.serum.NormFinder.result %>% filter(p.value <= 0.05)
+
+adverse.serum.NormFinder.result.sigficant 
+
+# EV CT Mean
+adverse.EV.CTMean.result.sigficant = 
+  adverse.EV.CTMean.result %>% filter(p.value <= 0.05)
+
+adverse.EV.CTMean.result.sigficant
+
+# EV geNorm
+adverse.EV.geNorm.result.sigficant = 
+  adverse.EV.geNorm.result %>% filter(p.value <= 0.05)
+
+adverse.EV.geNorm.result.sigficant
+
+# EV Norm Finder
+adverse.EV.NormFinder.result.sigficant = 
+  adverse.EV.NormFinder.result %>% filter(p.value <= 0.05)
+
+adverse.EV.NormFinder.result.sigficant
+```
+
+```{r selection3}
+library(MASS)
+fullmodel1 = glm(data = serum.all, formula = `Biopsy Grade Group`~`hsa-miR-1246`+`hsa-miR-214-3p`+`hsa-miR-301a-3p`)
+serum.grade.final = stepAIC(object = fullmodel1, direction = "backward")
+
+# serum CT Mean
+fullmodel.serum.ctmean = glm(formula = serum.all.original$`Biopsy Grade Group`~ serum.globalCTMean.new$`hsa-miR-1246`+ serum.globalCTMean.new$`hsa-miR-363-3p`+ serum.globalCTMean.new$`hsa-miR-320a` + serum.globalCTMean.new$`hsa-miR-125b-5p` + serum.globalCTMean.new$`hsa-miR-27a-3p` + serum.globalCTMean.new$`hsa-miR-16-5p` + serum.globalCTMean.new$`hsa-let-7b-5p` + serum.globalCTMean.new$`hsa-miR-27b-3p` + serum.globalCTMean.new$`hsa-miR-29a-3p` + serum.globalCTMean.new$`hsa-miR-21-5p` + serum.globalCTMean.new$`hsa-miR-451a` + serum.globalCTMean.new$`hsa-miR-874-3p`)
+
+step.serum.grade.CTMean = stepAIC(object = fullmodel.serum.ctmean, direction = "backward")
+
+# serum geNorm
+fullmodel.serum.geNorm = glm(formula = serum.all.original$`Biopsy Grade Group`~ serum.globalCTMean.new$`hsa-miR-1246`+ serum.globalCTMean.new$`hsa-miR-214-3p`+ serum.globalCTMean.new$`hsa-miR-301a-3p` + )
+
+step.serum.grade.CTMean = stepAIC(object = fullmodel.serum.ctmean, direction = "backward")
+```
 
