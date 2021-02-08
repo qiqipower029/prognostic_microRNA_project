@@ -227,7 +227,92 @@ for (i in 1:61) {
 }
 
 # Display result
-grade.serum.result[order(grade.serum.result$p.value),]
-grade.EV.result[order(grade.EV.result$p.value),]
+grade.serum.result = grade.serum.result[order(grade.serum.result$p.value),]
+grade.EV.result = grade.EV.result[order(grade.EV.result$p.value),]
+
+# Serum global CTMean
+grade.serum.CTMean.result = data.frame(
+  microRNA = colnames(serum.globalCTMean.new)[-1],
+  p.value = numeric(61)
+)
+for (i in 1:61) {
+  model = glm(formula = serum.all.original$`Biopsy Grade Group`~serum.globalCTMean.new[,i+1])
+  result = summary(model)
+  grade.serum.CTMean.result$p.value[i] = result$coefficients[2,4]
+}
+
+grade.serum.CTMean.result = grade.serum.CTMean.result[order(grade.serum.CTMean.result$p.value),]
+
+# Serum geNorm
+grade.serum.geNorm.result = data.frame(
+  microRNA = colnames(serum.geNorm.new)[-1],
+  p.value = numeric(61)
+)
+for (i in 1:61) {
+  model = glm(formula = serum.all.original$`Biopsy Grade Group`~serum.geNorm.new[,i+1])
+  result = summary(model)
+  grade.serum.geNorm.result$p.value[i] = result$coefficients[2,4]
+}
+
+grade.serum.geNorm.result = grade.serum.geNorm.result[order(grade.serum.geNorm.result$p.value),]
+
+# Serum NormFinder
+grade.serum.NormFinder.result = data.frame(
+  microRNA = colnames(serum.NormFinder.new)[-1],
+  p.value = numeric(61)
+)
+for (i in 1:61) {
+  model = glm(formula = serum.all.original$`Biopsy Grade Group`~serum.NormFinder.new[,i+1])
+  result = summary(model)
+  grade.serum.NormFinder.result$p.value[i] = result$coefficients[2,4]
+}
+
+grade.serum.NormFinder.result = grade.serum.geNorm.result[order(grade.serum.NormFinder.result$p.value),]
+
+EV.grade.CTMean = left_join(EV.globalCTMean.new,biopsy.grade, by = "Patient ID")
+
+# EV global CT Mean
+grade.EV.CTMean.result = data.frame(
+  microRNA = colnames(EV.globalCTMean.new)[-1],
+  p.value = numeric(61)
+)
+for (i in 1:61) {
+  model = glm(formula = EV.grade.CTMean$`Biopsy Grade Group`~ EV.globalCTMean.new[,i+1])
+  result = summary(model)
+  grade.EV.CTMean.result$p.value[i] = result$coefficients[2,4]
+}
+
+grade.EV.CTMean.result = grade.EV.CTMean.result[order(grade.EV.CTMean.result$p.value),]
+
+# EV geNorm
+grade.EV.geNorm.result = data.frame(
+  microRNA = colnames(EV.geNorm.new)[-1],
+  p.value = numeric(61)
+)
+for (i in 1:61) {
+  model = glm(formula = EV.grade.CTMean$`Biopsy Grade Group`~ EV.geNorm.new[,i+1])
+  result = summary(model)
+  grade.EV.geNorm.result$p.value[i] = result$coefficients[2,4]
+}
+
+grade.EV.geNorm.result = grade.EV.geNorm.result[order(grade.EV.geNorm.result$p.value),]
+
+
+# EV Norm Finder
+grade.EV.NormFinder.result = data.frame(
+  microRNA = colnames(EV.NormFinder.new)[-1],
+  p.value = numeric(61)
+)
+for (i in 1:61) {
+  model = glm(formula = EV.grade.CTMean$`Biopsy Grade Group`~ EV.NormFinder.new[,i+1])
+  result = summary(model)
+  grade.EV.NormFinder.result$p.value[i] = result$coefficients[2,4]
+}
+
+grade.EV.NormFinder.result = grade.EV.NormFinder.result[order(grade.EV.NormFinder.result$p.value),]
+
+# Collect the results
+serum.GLM.result = write.xlsx(list(grade.serum.result, grade.serum.CTMean.result, grade.serum.geNorm.result, grade.serum.NormFinder.result), file = "serumGLMresults.xlsx")
+EV.GLM.result = write.xlsx(list(grade.EV.result, grade.EV.CTMean.result, grade.EV.geNorm.result, grade.EV.NormFinder.result), file = "EVGLMresults.xlsx")
 ```
 
