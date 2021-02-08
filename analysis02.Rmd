@@ -300,11 +300,11 @@ grade.EV.geNorm.result = grade.EV.geNorm.result[order(grade.EV.geNorm.result$p.v
 
 # EV Norm Finder
 grade.EV.NormFinder.result = data.frame(
-  microRNA = colnames(EV.NormFinder.new)[-1],
-  p.value = numeric(61)
+  microRNA = colnames(EV.NormFinder.new2)[-1],
+  p.value = numeric(60)
 )
-for (i in 1:61) {
-  model = glm(formula = EV.grade.CTMean$`Biopsy Grade Group`~ EV.NormFinder.new[,i+1])
+for (i in 1:60) {
+  model = glm(formula = EV.grade.CTMean$`Biopsy Grade Group`~ EV.NormFinder.new2[,i+1])
   result = summary(model)
   grade.EV.NormFinder.result$p.value[i] = result$coefficients[2,4]
 }
@@ -312,7 +312,59 @@ for (i in 1:61) {
 grade.EV.NormFinder.result = grade.EV.NormFinder.result[order(grade.EV.NormFinder.result$p.value),]
 
 # Collect the results
-serum.GLM.result = write.xlsx(list(grade.serum.result, grade.serum.CTMean.result, grade.serum.geNorm.result, grade.serum.NormFinder.result), file = "serumGLMresults.xlsx")
-EV.GLM.result = write.xlsx(list(grade.EV.result, grade.EV.CTMean.result, grade.EV.geNorm.result, grade.EV.NormFinder.result), file = "EVGLMresults.xlsx")
+grade.serum.GLM.result = write.xlsx(list(grade.serum.result, grade.serum.CTMean.result, grade.serum.geNorm.result, grade.serum.NormFinder.result), file = "serumGLMresults.xlsx")
+grade.EV.GLM.result = write.xlsx(list(grade.EV.result, grade.EV.CTMean.result, grade.EV.geNorm.result, grade.EV.NormFinder.result), file = "EVGLMresults.xlsx")
 ```
+
+## Variable selection
+```{r variable selection1}
+# get the significant results
+grade.serum.result.significant = 
+  grade.serum.result %>% filter(p.value <= 0.05)
+
+grade.serum.result.significant
+
+grade.EV.result.significant = 
+  grade.EV.result %>% filter(p.value <= 0.05)
+
+grade.EV.result.significant
+
+# serum CT mean
+grade.serum.CTMean.result.sigficant = 
+  grade.serum.CTMean.result %>% filter(p.value <= 0.05)
+
+grade.serum.CTMean.result.sigficant
+
+# serum geNorm
+grade.serum.geNorm.result.sigficant = 
+  grade.serum.geNorm.result %>% filter(p.value <= 0.05)
+
+grade.serum.geNorm.result.sigficant
+
+# serum Norm Finder
+grade.serum.NormFinder.result.sigficant = 
+  grade.serum.NormFinder.result %>% filter(p.value <= 0.05)
+
+grade.serum.NormFinder.result.sigficant 
+
+# EV CT Mean
+grade.EV.CTMean.result.sigficant = 
+  grade.EV.CTMean.result %>% filter(p.value <= 0.05)
+
+grade.EV.CTMean.result.sigficant
+
+# EV geNorm
+grade.EV.geNorm.result.sigficant = 
+  grade.EV.geNorm.result %>% filter(p.value <= 0.05)
+
+grade.EV.geNorm.result.sigficant
+
+# EV Norm Finder
+grade.EV.NormFinder.result.sigficant = 
+  grade.EV.NormFinder.result %>% filter(p.value <= 0.05)
+
+grade.EV.NormFinder.result.sigficant
+```
+
+
 
