@@ -118,8 +118,8 @@ for (i in 1:61) {
 }
 
 # Display result
-grade.serum.result
-grade.EV.result
+grade.serum.result[order(grade.serum.result$p.value),]
+grade.EV.result[order(grade.EV.result$p.value),]
 ```
 
 Now we want to focus on the significant predictors.
