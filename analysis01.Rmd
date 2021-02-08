@@ -52,7 +52,8 @@ adverse.pathology$`Adverse Pathology` = ifelse(adverse.pathology$`Adverse Pathol
 # checking distribution for serum
 normality.test.serum = data.frame(
   microRNA = colnames(serum.geneglobe.new[-1]),
-  p.value = numeric(61)
+  p.value = numeric(61),
+  method = "GeneGlobe"
 )
 
 for (i in 1:61) {
@@ -63,7 +64,8 @@ for (i in 1:61) {
 # checking distribution for EV
 normality.test.EV = data.frame(
   microRNA = colnames(EV.geneglobe.new[-1]),
-  p.value = numeric(61)
+  p.value = numeric(61),
+  method = "GeneGlobe"
 )
 
 for (i in 1:61) {

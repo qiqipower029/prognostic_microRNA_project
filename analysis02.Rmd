@@ -39,7 +39,7 @@ new <- new[-1,]
 new <- apply(new,1,as.numeric) %>% t()
 colnames(new) <- (name_tmp)
 serum.geNorm.new = new %>% as.data.frame()
-serum.geNorm.new = rownames_to_column(serum.globalCTMean.new)
+serum.geNorm.new = rownames_to_column(serum.geNorm.new)
 colnames(serum.globalCTMean.new)[1] = "Patient ID"
 
 # Serum geNorm Finder
@@ -80,6 +80,115 @@ new <- apply(new,1,as.numeric) %>% t()
 colnames(new) <- (name_tmp)
 EV.NormFinder.new = new %>% as.data.frame()
 EV.NormFinder.new = rownames_to_column(EV.NormFinder.new)
-colnames(EV.geNorm.new)[1] = "Patient ID"
+colnames(EV.NormFinder.new)[1] = "Patient ID"
+
+
+# Adverse pathology
+adverse.pathology$`Adverse Pathology` = ifelse(adverse.pathology$`Adverse Pathology` == "99", NA, adverse.pathology$`Adverse Pathology`)
+```
+
+## Distribution checking
+```{r distribution checking}
+# serum global ct mean
+normality.test.serum.CTMean = data.frame(
+  microRNA = colnames(serum.globalCTMean.new[-1]),
+  p.value = numeric(61),
+  method = "Global CTMean"
+)
+
+for (i in 1:61) {
+  test = shapiro.test(serum.globalCTMean.new[,i+1])
+  normality.test.serum.CTMean$p.value[i] = test$p.value
+}
+
+# serum geNorm
+normality.test.serum.geNorm = data.frame(
+  microRNA = colnames(serum.geNorm.new[-1]),
+  p.value = numeric(61),
+  method = "geNorm"
+)
+
+for (i in 1:61) {
+  test = shapiro.test(serum.geNorm.new[,i+1])
+  normality.test.serum.geNorm$p.value[i] = test$p.value
+}
+
+# serum geNorm NormFinder
+normality.test.serum.NormFinder = data.frame(
+  microRNA = colnames(serum.NormFinder.new[-1]),
+  p.value = numeric(61),
+  method = "NormFinder"
+)
+
+for (i in 1:61) {
+  test = shapiro.test(serum.NormFinder.new[,i+1])
+  normality.test.serum.NormFinder$p.value[i] = test$p.value
+}
+
+# EV global CT Mean
+normality.test.EV.CTMean = data.frame(
+  microRNA = colnames(EV.globalCTMean.new[-1]),
+  p.value = numeric(61),
+  method = "Global CTMean"
+)
+
+for (i in 1:61) {
+  test = shapiro.test(EV.globalCTMean.new[,i+1])
+  normality.test.EV.CTMean$p.value[i] = test$p.value
+}
+
+# EV geNorm
+normality.test.EV.geNorm = data.frame(
+  microRNA = colnames(EV.geNorm.new[-1]),
+  p.value = numeric(61),
+  method = "geNorm"
+)
+
+for (i in 1:61) {
+  test = shapiro.test(EV.geNorm.new[,i+1])
+  normality.test.EV.geNorm$p.value[i] = test$p.value
+}
+
+EV.NormFinder.new2 = EV.NormFinder.new[,-7]
+# EV NormFinder
+normality.test.EV.NormFinder = data.frame(
+  microRNA = colnames(EV.NormFinder.new2[-1]),
+  p.value = numeric(60),
+  method = "NormFinder"
+)
+
+for (i in 1:60) {
+  test = shapiro.test(EV.NormFinder.new2[,i+1])
+  normality.test.EV.NormFinder$p.value[i] = test$p.value
+}
+
+normality.test.serum = data.frame(
+  microRNA = colnames(serum.geneglobe.new[-1]),
+  p.value = numeric(61),
+  method = "Gene Globe"
+)
+
+for (i in 1:61) {
+  test = shapiro.test(serum.geneglobe.new[,i+1])
+  normality.test.serum$p.value[i] = test$p.value
+}
+
+# checking distribution for EV
+normality.test.EV = data.frame(
+  microRNA = colnames(EV.geneglobe.new[-1]),
+  p.value = numeric(61),
+  method = "Gene Globe"
+)
+
+for (i in 1:61) {
+  test = shapiro.test(EV.geneglobe.new[,i+1])
+  normality.test.EV$p.value[i] = test$p.value
+}
+
+normality.result.serum = rbind(normality.test.serum, normality.test.serum.CTMean, normality.test.serum.geNorm, normality.test.serum.NormFinder)
+normality.result.EV = rbind(normality.test.EV, normality.test.EV.CTMean, normality.test.EV.geNorm, normality.test.EV.NormFinder)
+
+library(openxlsx)
+write.xlsx(list(normality.result.serum, normality.result.EV), file = "Normality test results.xlsx")
 ```
 
