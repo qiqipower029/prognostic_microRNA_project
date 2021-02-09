@@ -564,8 +564,13 @@ fullmodel.serum.ctmean = glm(formula = serum.all.original$`Biopsy Grade Group`~ 
 step.serum.grade.CTMean = stepAIC(object = fullmodel.serum.ctmean, direction = "backward")
 
 # serum geNorm
-fullmodel.serum.geNorm = glm(formula = serum.all.original$`Biopsy Grade Group`~ serum.globalCTMean.new$`hsa-miR-1246`+ serum.globalCTMean.new$`hsa-miR-214-3p`+ serum.globalCTMean.new$`hsa-miR-301a-3p` + )
+fullmodel.serum.geNorm = glm(formula = serum.all.original$`Biopsy Grade Group`~ serum.geNorm.new$`hsa-miR-1246`+ serum.geNorm.new$`hsa-miR-363-3p`+ serum.geNorm.new$`hsa-miR-320a` + serum.geNorm.new$`hsa-miR-125b-5p` + serum.geNorm.new$`hsa-miR-27a-3p` + serum.geNorm.new$`hsa-miR-16-5p` + serum.geNorm.new$`hsa-let-7b-5p` + serum.geNorm.new$`hsa-miR-27b-3p` + serum.geNorm.new$`hsa-miR-29a-3p` + serum.geNorm.new$`hsa-miR-21-5p` + serum.geNorm.new$`hsa-miR-451a` + serum.geNorm.new$`hsa-miR-874-3p`)
 
-step.serum.grade.CTMean = stepAIC(object = fullmodel.serum.ctmean, direction = "backward")
+step.serum.grade.geNorm = stepAIC(object = fullmodel.serum.geNorm, direction = "backward")
+
+# serum NormFinder
+fullmodel.serum.NormFinder = glm(formula = serum.all.original$`Biopsy Grade Group`~ serum.NormFinder.new$`hsa-miR-1246`+ serum.NormFinder.new$`hsa-miR-363-3p`+ serum.NormFinder.new$`hsa-miR-320a` + serum.NormFinder.new$`hsa-miR-125b-5p` + serum.NormFinder.new$`hsa-miR-27a-3p` + serum.NormFinder.new$`hsa-miR-16-5p` + serum.NormFinder.new$`hsa-let-7b-5p` + serum.NormFinder.new$`hsa-miR-27b-3p` + serum.NormFinder.new$`hsa-miR-29a-3p` + serum.NormFinder.new$`hsa-miR-21-5p` + serum.NormFinder.new$`hsa-miR-451a` + serum.NormFinder.new$`hsa-miR-874-3p`)
+
+step.serum.grade.NormFinder = stepAIC(object = fullmodel.serum.NormFinder, direction = "backward")
 ```
 
