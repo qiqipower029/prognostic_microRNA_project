@@ -574,3 +574,10 @@ fullmodel.serum.NormFinder = glm(formula = serum.all.original$`Biopsy Grade Grou
 step.serum.grade.NormFinder = stepAIC(object = fullmodel.serum.NormFinder, direction = "backward")
 ```
 
+```{r selection 4}
+# EV CT mean
+fullmodel.EV.CTMean = glm(formula = EV.all.original$`Biopsy Grade Group`~ EV.globalCTMean.new$`hsa-miR-335-5p`+ EV.globalCTMean.new$`hsa-miR-191-5p`+ EV.globalCTMean.new$`hsa-miR-107` + EV.globalCTMean.new$`hsa-miR-130b-3p` + EV.globalCTMean.new$`hsa-miR-221-3p` + EV.globalCTMean.new$`hsa-miR-214-3p` + EV.globalCTMean.new$`hsa-miR-103a-3p` + EV.globalCTMean.new$`hsa-miR-330-3p` + EV.globalCTMean.new$`hsa-miR-30a-5p`+ EV.globalCTMean.new$`hsa-let-7a-5p`)
+
+step.EV.grade.CTMean = stepAIC(object = fullmodel.EV.CTMean, direction = "backward")
+```
+
