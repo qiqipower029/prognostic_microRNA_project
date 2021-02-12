@@ -17,10 +17,12 @@ serum.NormFinder = readxl::read_excel("./data/Serum_AdjustedRQ_CT35_BioStats.xls
 EV.globalCTMean = readxl::read_excel("./data/SerumEV_AdjustedRQ_CT35_BioStats.xlsx", sheet = "GlobalCTMean RQ")
 EV.geNorm = readxl::read_excel("./data/SerumEV_AdjustedRQ_CT35_BioStats.xlsx", sheet = "geNorm RQ")
 EV.NormFinder = readxl::read_excel("./data/SerumEV_AdjustedRQ_CT35_BioStats.xlsx", sheet = "geNorm NormFinder RQ")
+serum.geneglobe = readxl::read_excel("./data/Serum_SerumEV_GeneGlobeRQ_CT35.xlsx", sheet = "Serum_GeneGlobeRQ_CT35")
+EV.geneglobe = readxl::read_excel("./data/Serum_SerumEV_GeneGlobeRQ_CT35.xlsx", sheet = "EV_GeneGlobeRQ_CT35")
 ```
 
 ## Tidy data
-```{r tidy data}
+```{r tidy data1}
 library(tidyverse)
 # Serum global CT mean
 new = t(serum.globalCTMean)
@@ -82,6 +84,31 @@ EV.NormFinder.new = new %>% as.data.frame()
 EV.NormFinder.new = rownames_to_column(EV.NormFinder.new)
 colnames(EV.NormFinder.new)[1] = "Patient ID"
 
+
+# Adverse pathology
+adverse.pathology$`Adverse Pathology` = ifelse(adverse.pathology$`Adverse Pathology` == "99", NA, adverse.pathology$`Adverse Pathology`)
+```
+```{r tidy data}
+# change format from wide to long
+# serum
+new = t(serum.geneglobe)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+serum.geneglobe.new = new %>% as.data.frame()
+serum.geneglobe.new = rownames_to_column(serum.geneglobe.new)
+colnames(serum.geneglobe.new)[1] = "Patient ID"
+
+# EV
+new = t(EV.geneglobe)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+EV.geneglobe.new = new %>% as.data.frame()
+EV.geneglobe.new = rownames_to_column(EV.geneglobe.new)
+colnames(EV.geneglobe.new)[1] = "Patient ID"
 
 # Adverse pathology
 adverse.pathology$`Adverse Pathology` = ifelse(adverse.pathology$`Adverse Pathology` == "99", NA, adverse.pathology$`Adverse Pathology`)
@@ -187,7 +214,8 @@ for (i in 1:61) {
 
 normality.result.serum = rbind(normality.test.serum, normality.test.serum.CTMean, normality.test.serum.geNorm, normality.test.serum.NormFinder)
 normality.result.EV = rbind(normality.test.EV, normality.test.EV.CTMean, normality.test.EV.geNorm, normality.test.EV.NormFinder)
-
+normality.result.serum %>% filter(p.value >= 0.05)
+normality.result.EV %>% filter(p.value >= 0.05)
 library(openxlsx)
 write.xlsx(list(normality.result.serum, normality.result.EV), file = "Normality test results.xlsx")
 ```
@@ -210,7 +238,7 @@ grade.serum.result = data.frame(
   p.value = numeric(61)
 )
 for (i in 1:61) {
-  model = glm(formula = serum.all$`Biopsy Grade Group`~serum.all[,i+1])
+  model = glm(formula = serum.all.original$`Biopsy Grade Group`~serum.all.original[,i+1])
   result = summary(model)
   grade.serum.result$p.value[i] = result$coefficients[2,4]
 }
@@ -221,7 +249,7 @@ grade.EV.result = data.frame(
 )
 
 for (i in 1:61) {
-  model = glm(formula = EV.all$`Biopsy Grade Group`~EV.all[,i+1])
+  model = glm(formula = EV.all.original$`Biopsy Grade Group`~EV.all.original[,i+1])
   result = summary(model)
   grade.EV.result$p.value[i] = result$coefficients[2,4]
 }
@@ -233,7 +261,7 @@ adverse.serum.result = data.frame(
   p.value = numeric(61)
 )
 for (i in 1:61) {
-  model = glm(formula = serum.all$`Adverse Pathology`~serum.all[,i+1], family = "binomial")
+  model = glm(formula = serum.all.original$`Adverse Pathology`~serum.all.original[,i+1], family = "binomial")
   result = summary(model)
   adverse.serum.result$p.value[i] = result$coefficients[2,4]
 }
@@ -244,7 +272,7 @@ adverse.EV.result = data.frame(
 )
 
 for (i in 1:61) {
-  model = glm(formula = EV.all$`Adverse Pathology`~EV.all[,i+1], family = "binomial")
+  model = glm(formula = EV.all.original$`Adverse Pathology`~EV.all.original[,i+1], family = "binomial")
   result = summary(model)
   adverse.EV.result$p.value[i] = result$coefficients[2,4]
 }
@@ -346,7 +374,7 @@ adverse.serum.result = data.frame(
   p.value = numeric(61)
 )
 for (i in 1:61) {
-  model = glm(formula = serum.all$`Adverse Pathology`~serum.all[,i+1], family = "binomial")
+  model = glm(formula = serum.all.original$`Adverse Pathology`~serum.all.original[,i+1], family = "binomial")
   result = summary(model)
   adverse.serum.result$p.value[i] = result$coefficients[2,4]
 }
@@ -357,7 +385,7 @@ adverse.EV.result = data.frame(
 )
 
 for (i in 1:61) {
-  model = glm(formula = EV.all$`Adverse Pathology`~EV.all[,i+1], family = "binomial")
+  model = glm(formula = EV.all.original$`Adverse Pathology`~EV.all.original[,i+1], family = "binomial")
   result = summary(model)
   adverse.EV.result$p.value[i] = result$coefficients[2,4]
 }
@@ -403,7 +431,7 @@ for (i in 1:61) {
   adverse.serum.NormFinder.result$p.value[i] = result$coefficients[2,4]
 }
 
-adverse.serum.NormFinder.result = adverse.serum.geNorm.result[order(adverse.serum.NormFinder.result$p.value),]
+adverse.serum.NormFinder.result = adverse.serum.NormFinder.result[order(adverse.serum.NormFinder.result$p.value),]
 
 EV.adverse.CTMean = left_join(EV.globalCTMean.new, adverse.pathology, by = "Patient ID")
 
@@ -440,7 +468,7 @@ adverse.EV.NormFinder.result = data.frame(
   p.value = numeric(60)
 )
 for (i in 1:60) {
-  model = glm(formula = EV.grade.CTMean$`Adverse Pathology`~ EV.NormFinder.new2[,i+1], family = "binomial")
+  model = glm(formula = EV.adverse.CTMean$`Adverse Pathology`~ EV.NormFinder.new2[,i+1], family = "binomial")
   result = summary(model)
   adverse.EV.NormFinder.result$p.value[i] = result$coefficients[2,4]
 }
@@ -556,7 +584,7 @@ adverse.EV.NormFinder.result.sigficant
 ## Biopsy Grade selection
 ```{r selection3}
 library(MASS)
-fullmodel1 = glm(data = serum.all, formula = `Biopsy Grade Group`~`hsa-miR-1246`+`hsa-miR-214-3p`+`hsa-miR-301a-3p`)
+fullmodel1 = glm(data = serum.all.original, formula = `Biopsy Grade Group`~`hsa-miR-1246`+`hsa-miR-214-3p`+`hsa-miR-301a-3p`)
 serum.grade.final = stepAIC(object = fullmodel1, direction = "backward")
 
 # serum CT Mean
