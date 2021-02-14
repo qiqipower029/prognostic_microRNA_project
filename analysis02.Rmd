@@ -241,7 +241,7 @@ grade.serum.result = data.frame(
   
 )
 for (i in 1:61) {
-  model = glm(formula = serum.all.original$`Biopsy Grade Group`~serum.all.original[,2])
+  model = glm(formula = serum.all.original$`Biopsy Grade Group`~serum.all.original[,i+1])
   result = summary(model)
   grade.serum.result$coefficient.estimates[i] = result$coefficients[2,1]
   grade.serum.result$standard.deviation[i] = result$coefficients[2,2]
@@ -258,6 +258,8 @@ grade.EV.result = data.frame(
 for (i in 1:61) {
   model = glm(formula = EV.all.original$`Biopsy Grade Group`~EV.all.original[,i+1])
   result = summary(model)
+  grade.EV.result$coefficient.estimates[i] = result$coefficients[2,1]
+  grade.EV.result$standard.deviation = result$coefficients[2,2]
   grade.EV.result$p.value[i] = result$coefficients[2,4]
 }
 
@@ -272,6 +274,8 @@ adverse.serum.result = data.frame(
 for (i in 1:61) {
   model = glm(formula = serum.all.original$`Adverse Pathology`~serum.all.original[,i+1], family = "binomial")
   result = summary(model)
+  adverse.serum.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.serum.result$standard.deviation[i] = result$coefficients[2,2]
   adverse.serum.result$p.value[i] = result$coefficients[2,4]
 }
 
@@ -285,11 +289,13 @@ adverse.EV.result = data.frame(
 for (i in 1:61) {
   model = glm(formula = EV.all.original$`Adverse Pathology`~EV.all.original[,i+1], family = "binomial")
   result = summary(model)
+  adverse.EV.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.EV.result$standard.deviation[i] = result$coefficients[2,2]
   adverse.EV.result$p.value[i] = result$coefficients[2,4]
 }
 
 # Display result
-adverse.EV.result= grade.serum.result[order(grade.serum.result$p.value),]
+adverse.EV.result = grade.serum.result[order(grade.serum.result$p.value),]
 grade.EV.result = grade.EV.result[order(grade.EV.result$p.value),]
 
 # Serum global CTMean
@@ -302,6 +308,8 @@ grade.serum.CTMean.result = data.frame(
 for (i in 1:61) {
   model = glm(formula = serum.all.original$`Biopsy Grade Group`~serum.globalCTMean.new[,i+1])
   result = summary(model)
+  grade.serum.CTMean.result$coefficient.estimates[i] = result$coefficients[2,1]
+  grade.serum.CTMean.result$standard.deviation[i] = result$coefficients[2,2]
   grade.serum.CTMean.result$p.value[i] = result$coefficients[2,4]
 }
 
@@ -317,6 +325,8 @@ grade.serum.geNorm.result = data.frame(
 for (i in 1:61) {
   model = glm(formula = serum.all.original$`Biopsy Grade Group`~serum.geNorm.new[,i+1])
   result = summary(model)
+  grade.serum.geNorm.result$coefficient.estimates[i] = result$coefficients[2,1]
+  grade.serum.geNorm.result$standard.deviation[i] = result$coefficients[2,2]
   grade.serum.geNorm.result$p.value[i] = result$coefficients[2,4]
 }
 
@@ -332,6 +342,8 @@ grade.serum.NormFinder.result = data.frame(
 for (i in 1:61) {
   model = glm(formula = serum.all.original$`Biopsy Grade Group`~serum.NormFinder.new[,i+1])
   result = summary(model)
+  grade.serum.NormFinder.result$coefficient.estimates[i] = result$coefficients[2,1]
+  grade.serum.NormFinder.result$standard.deviation[i] = result$coefficients[2,2]
   grade.serum.NormFinder.result$p.value[i] = result$coefficients[2,4]
 }
 
@@ -349,6 +361,8 @@ grade.EV.CTMean.result = data.frame(
 for (i in 1:61) {
   model = glm(formula = EV.grade.CTMean$`Biopsy Grade Group`~ EV.globalCTMean.new[,i+1])
   result = summary(model)
+  grade.EV.CTMean.result$coefficient.estimates[i] = result$coefficients[2,1]
+  grade.EV.CTMean.result$standard.deviation[i] = result$coefficients[2,2]
   grade.EV.CTMean.result$p.value[i] = result$coefficients[2,4]
 }
 
@@ -364,6 +378,8 @@ grade.EV.geNorm.result = data.frame(
 for (i in 1:61) {
   model = glm(formula = EV.grade.CTMean$`Biopsy Grade Group`~ EV.geNorm.new[,i+1])
   result = summary(model)
+  grade.EV.geNorm.result$coefficient.estimates[i] = result$coefficients[2,1]
+  grade.EV.geNorm.result$standard.deviation[i] = result$coefficients[2,2]
   grade.EV.geNorm.result$p.value[i] = result$coefficients[2,4]
 }
 
@@ -380,6 +396,8 @@ grade.EV.NormFinder.result = data.frame(
 for (i in 1:60) {
   model = glm(formula = EV.grade.CTMean$`Biopsy Grade Group`~ EV.NormFinder.new2[,i+1])
   result = summary(model)
+  grade.EV.NormFinder.result$coefficient.estimates[i] = result$coefficients[2,1]
+  grade.EV.NormFinder.result$standard.deviation[i] = result$coefficients[2,2]
   grade.EV.NormFinder.result$p.value[i] = result$coefficients[2,4]
 }
 
