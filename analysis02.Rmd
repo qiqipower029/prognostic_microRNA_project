@@ -235,16 +235,23 @@ EV.all.original = left_join(EV.grade.original, adverse.pathology, by = "Patient 
 ```{r GLM fitting}
 grade.serum.result = data.frame(
   microRNA = colnames(serum.geneglobe.new)[-1],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
   p.value = numeric(61)
+  
 )
 for (i in 1:61) {
-  model = glm(formula = serum.all.original$`Biopsy Grade Group`~serum.all.original[,i+1])
+  model = glm(formula = serum.all.original$`Biopsy Grade Group`~serum.all.original[,2])
   result = summary(model)
+  grade.serum.result$coefficient.estimates[i] = result$coefficients[2,1]
+  grade.serum.result$standard.deviation[i] = result$coefficients[2,2]
   grade.serum.result$p.value[i] = result$coefficients[2,4]
 }
 
 grade.EV.result = data.frame(
   microRNA = colnames(EV.geneglobe.new)[-1],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
   p.value = numeric(61)
 )
 
@@ -258,6 +265,8 @@ for (i in 1:61) {
 # univariate GLM
 adverse.serum.result = data.frame(
   microRNA = colnames(serum.geneglobe.new)[-1],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
   p.value = numeric(61)
 )
 for (i in 1:61) {
@@ -268,6 +277,8 @@ for (i in 1:61) {
 
 adverse.EV.result = data.frame(
   microRNA = colnames(EV.geneglobe.new)[-1],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
   p.value = numeric(61)
 )
 
@@ -284,6 +295,8 @@ grade.EV.result = grade.EV.result[order(grade.EV.result$p.value),]
 # Serum global CTMean
 grade.serum.CTMean.result = data.frame(
   microRNA = colnames(serum.globalCTMean.new)[-1],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
   p.value = numeric(61)
 )
 for (i in 1:61) {
@@ -297,6 +310,8 @@ grade.serum.CTMean.result = grade.serum.CTMean.result[order(grade.serum.CTMean.r
 # Serum geNorm
 grade.serum.geNorm.result = data.frame(
   microRNA = colnames(serum.geNorm.new)[-1],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
   p.value = numeric(61)
 )
 for (i in 1:61) {
@@ -310,6 +325,8 @@ grade.serum.geNorm.result = grade.serum.geNorm.result[order(grade.serum.geNorm.r
 # Serum NormFinder
 grade.serum.NormFinder.result = data.frame(
   microRNA = colnames(serum.NormFinder.new)[-1],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
   p.value = numeric(61)
 )
 for (i in 1:61) {
@@ -325,6 +342,8 @@ EV.grade.CTMean = left_join(EV.globalCTMean.new,biopsy.grade, by = "Patient ID")
 # EV global CT Mean
 grade.EV.CTMean.result = data.frame(
   microRNA = colnames(EV.globalCTMean.new)[-1],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
   p.value = numeric(61)
 )
 for (i in 1:61) {
@@ -338,6 +357,8 @@ grade.EV.CTMean.result = grade.EV.CTMean.result[order(grade.EV.CTMean.result$p.v
 # EV geNorm
 grade.EV.geNorm.result = data.frame(
   microRNA = colnames(EV.geNorm.new)[-1],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
   p.value = numeric(61)
 )
 for (i in 1:61) {
@@ -352,6 +373,8 @@ grade.EV.geNorm.result = grade.EV.geNorm.result[order(grade.EV.geNorm.result$p.v
 # EV Norm Finder
 grade.EV.NormFinder.result = data.frame(
   microRNA = colnames(EV.NormFinder.new2)[-1],
+  coefficient.estimates = numeric(60),
+  standard.deviation = numeric(60),
   p.value = numeric(60)
 )
 for (i in 1:60) {
@@ -371,6 +394,8 @@ grade.EV.GLM.result = write.xlsx(list(grade.EV.result, grade.EV.CTMean.result, g
 # univariate GLM
 adverse.serum.result = data.frame(
   microRNA = colnames(serum.geneglobe.new)[-1],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
   p.value = numeric(61)
 )
 for (i in 1:61) {
@@ -381,6 +406,8 @@ for (i in 1:61) {
 
 adverse.EV.result = data.frame(
   microRNA = colnames(EV.geneglobe.new)[-1],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
   p.value = numeric(61)
 )
 
@@ -397,6 +424,8 @@ adverse.EV.result = adverse.EV.result[order(adverse.EV.result$p.value),]
 # Serum global CTMean
 adverse.serum.CTMean.result = data.frame(
   microRNA = colnames(serum.globalCTMean.new)[-1],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
   p.value = numeric(61)
 )
 for (i in 1:61) {
@@ -410,6 +439,8 @@ adverse.serum.CTMean.result = adverse.serum.CTMean.result[order(adverse.serum.CT
 # Serum geNorm
 adverse.serum.geNorm.result = data.frame(
   microRNA = colnames(serum.geNorm.new)[-1],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
   p.value = numeric(61)
 )
 for (i in 1:61) {
@@ -423,6 +454,8 @@ adverse.serum.geNorm.result = adverse.serum.geNorm.result[order(adverse.serum.ge
 # Serum NormFinder
 adverse.serum.NormFinder.result = data.frame(
   microRNA = colnames(serum.NormFinder.new)[-1],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
   p.value = numeric(61)
 )
 for (i in 1:61) {
@@ -438,6 +471,8 @@ EV.adverse.CTMean = left_join(EV.globalCTMean.new, adverse.pathology, by = "Pati
 # EV global CT Mean
 adverse.EV.CTMean.result = data.frame(
   microRNA = colnames(EV.globalCTMean.new)[-1],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
   p.value = numeric(61)
 )
 for (i in 1:61) {
@@ -451,6 +486,8 @@ adverse.EV.CTMean.result = adverse.EV.CTMean.result[order(adverse.EV.CTMean.resu
 # EV geNorm
 adverse.EV.geNorm.result = data.frame(
   microRNA = colnames(EV.geNorm.new)[-1],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
   p.value = numeric(61)
 )
 for (i in 1:61) {
@@ -465,6 +502,8 @@ adverse.EV.geNorm.result = adverse.EV.geNorm.result[order(adverse.EV.geNorm.resu
 # EV Norm Finder
 adverse.EV.NormFinder.result = data.frame(
   microRNA = colnames(EV.NormFinder.new2)[-1],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
   p.value = numeric(60)
 )
 for (i in 1:60) {
