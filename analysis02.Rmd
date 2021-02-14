@@ -347,7 +347,7 @@ for (i in 1:61) {
   grade.serum.NormFinder.result$p.value[i] = result$coefficients[2,4]
 }
 
-grade.serum.NormFinder.result = grade.serum.geNorm.result[order(grade.serum.NormFinder.result$p.value),]
+grade.serum.NormFinder.result = grade.serum.NormFinder.result[order(grade.serum.NormFinder.result$p.value),]
 
 EV.grade.CTMean = left_join(EV.globalCTMean.new,biopsy.grade, by = "Patient ID")
 
@@ -419,6 +419,8 @@ adverse.serum.result = data.frame(
 for (i in 1:61) {
   model = glm(formula = serum.all.original$`Adverse Pathology`~serum.all.original[,i+1], family = "binomial")
   result = summary(model)
+  adverse.serum.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.serum.result$standard.deviation[i] = result$coefficients[2,2]
   adverse.serum.result$p.value[i] = result$coefficients[2,4]
 }
 
@@ -432,6 +434,8 @@ adverse.EV.result = data.frame(
 for (i in 1:61) {
   model = glm(formula = EV.all.original$`Adverse Pathology`~EV.all.original[,i+1], family = "binomial")
   result = summary(model)
+  adverse.EV.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.EV.result$standard.deviation[i] = result$coefficients[2,2]
   adverse.EV.result$p.value[i] = result$coefficients[2,4]
 }
 
@@ -449,6 +453,8 @@ adverse.serum.CTMean.result = data.frame(
 for (i in 1:61) {
   model = glm(formula = serum.all.original$`Adverse Pathology`~serum.globalCTMean.new[,i+1], family = "binomial")
   result = summary(model)
+  adverse.serum.CTMean.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.serum.CTMean.result$standard.deviation[i] = result$coefficients[2,2]
   adverse.serum.CTMean.result$p.value[i] = result$coefficients[2,4]
 }
 
@@ -464,6 +470,8 @@ adverse.serum.geNorm.result = data.frame(
 for (i in 1:61) {
   model = glm(formula = serum.all.original$`Adverse Pathology`~serum.geNorm.new[,i+1], family = "binomial")
   result = summary(model)
+  adverse.serum.geNorm.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.serum.geNorm.result$standard.deviation[i] = result$coefficients[2,2]
   adverse.serum.geNorm.result$p.value[i] = result$coefficients[2,4]
 }
 
@@ -479,6 +487,8 @@ adverse.serum.NormFinder.result = data.frame(
 for (i in 1:61) {
   model = glm(formula = serum.all.original$`Adverse Pathology`~serum.NormFinder.new[,i+1], family = "binomial")
   result = summary(model)
+  adverse.serum.NormFinder.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.serum.NormFinder.result$standard.deviation[i] = result$coefficients[2,2]
   adverse.serum.NormFinder.result$p.value[i] = result$coefficients[2,4]
 }
 
@@ -496,6 +506,8 @@ adverse.EV.CTMean.result = data.frame(
 for (i in 1:61) {
   model = glm(formula = EV.adverse.CTMean$`Adverse Pathology`~ EV.globalCTMean.new[,i+1], family = "binomial")
   result = summary(model)
+  adverse.EV.CTMean.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.EV.CTMean.result$standard.deviation[i] = result$coefficients[2,2]
   adverse.EV.CTMean.result$p.value[i] = result$coefficients[2,4]
 }
 
@@ -511,6 +523,8 @@ adverse.EV.geNorm.result = data.frame(
 for (i in 1:61) {
   model = glm(formula = EV.adverse.CTMean$`Adverse Pathology`~ EV.geNorm.new[,i+1], family = "binomial")
   result = summary(model)
+  adverse.EV.geNorm.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.EV.geNorm.result$standard.deviation[i] = result$coefficients[2,4]
   adverse.EV.geNorm.result$p.value[i] = result$coefficients[2,4]
 }
 
@@ -520,13 +534,15 @@ adverse.EV.geNorm.result = adverse.EV.geNorm.result[order(adverse.EV.geNorm.resu
 # EV Norm Finder
 adverse.EV.NormFinder.result = data.frame(
   microRNA = colnames(EV.NormFinder.new2)[-1],
-  coefficient.estimates = numeric(61),
-  standard.deviation = numeric(61),
+  coefficient.estimates = numeric(60),
+  standard.deviation = numeric(60),
   p.value = numeric(60)
 )
 for (i in 1:60) {
   model = glm(formula = EV.adverse.CTMean$`Adverse Pathology`~ EV.NormFinder.new2[,i+1], family = "binomial")
   result = summary(model)
+  adverse.EV.NormFinder.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.EV.NormFinder.result$standard.deviation[i] = result$coefficients[2,2]
   adverse.EV.NormFinder.result$p.value[i] = result$coefficients[2,4]
 }
 
