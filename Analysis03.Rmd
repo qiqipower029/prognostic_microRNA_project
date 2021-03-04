@@ -87,7 +87,7 @@ new <- apply(new,1,as.numeric) %>% t()
 colnames(new) <- (name_tmp)
 EV.geNorm = new %>% as.data.frame()
 EV.geNorm = rownames_to_column(EV.geNorm)
-colnames(serum.geNorm)[1] = "Patient ID"
+colnames(EV.geNorm)[1] = "Patient ID"
 
 # EV GeneGlobe
 new = t(EV.geneglobe)
@@ -808,7 +808,12 @@ hsa-let-7a-5p was removed from the GLM fitting in EV NormFinder due to errors.
 hsa-miR-25-3p was removed from the GLM fitting in EV geNorm due to errors.
 
 ## Regression models
-Read in data files for covariate.
+Combine grade 1-2 as low-grade and grade 3-5 as high-grade.
+```{r grade combination}
+biopsy.grade$grades = ifelse(biopsy.grade$`Biopsy Grade Group` <= 2, "low", "high")
+```
+
+Read in data files for covariates.
 ```{r data manipulation}
 # Import covariate
 covariates = readxl::read_excel(path = "./data/3-1 data/Clinical Covariates_Updated.xlsx", sheet = "Covariates")
@@ -864,5 +869,13 @@ EV.adverse.covariates.NormFinder = left_join(EV.adverse.covariates.NormFinder, c
 
 EV.adverse.covariates.overlap = left_join(EV.overlap.new, biopsy.grade, by = "Patient ID")
 EV.adverse.covariates.overlap = left_join(EV.adverse.covariates.overlap, covariates, by = "Patient ID")
+```
+
+
+### Logistic regression
+
+We firstly want to build logistic regression model
+```{r logistic regresiion for biopsy grade group}
+
 ```
 
