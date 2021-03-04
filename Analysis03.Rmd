@@ -813,7 +813,7 @@ Read in data files for covariate.
 # Import covariate
 covariates = readxl::read_excel(path = "./data/3-1 data/Clinical Covariates_Updated.xlsx", sheet = "Covariates")
 
-# Combine datasets
+# Combine datasets for biopsy grade group
 serum.grade.covariates.geneglobe = left_join(serum.geneglobe.new, biopsy.grade, by = "Patient ID")
 serum.grade.covariates.geneglobe = left_join(serum.grade.covariates.geneglobe, covariates, by = "Patient ID")
 
@@ -837,5 +837,32 @@ EV.grade.covariates.NormFinder = left_join(EV.grade.covariates.NormFinder, covar
 
 EV.grade.covariates.overlap = left_join(EV.overlap.new, biopsy.grade, by = "Patient ID")
 EV.grade.covariates.overlap = left_join(EV.grade.covariates.overlap, covariates, by = "Patient ID")
+```
+
+```{r ap covaraites combination}
+# Combine datasets for adverse pathology
+serum.adverse.covariates.geneglobe = left_join(serum.geneglobe.new, adverse.pathology, by = "Patient ID")
+serum.adverse.covariates.geneglobe = left_join(serum.adverse.covariates.geneglobe, covariates, by = "Patient ID")
+
+serum.adverse.covariates.geNorm = left_join(serum.geNorm.new, adverse.pathology, by = "Patient ID")
+serum.adverse.covariates.geNorm = left_join(serum.adverse.covariates.geNorm, covariates, by = "Patient ID")
+
+serum.adverse.covariates.NormFinder = left_join(serum.NormFinder.new, adverse.pathology, by = "Patient ID")
+serum.adverse.covariates.NormFinder = left_join(serum.adverse.covariates.NormFinder, covariates, by = "Patient ID")
+
+serum.adverse.covariates.overlap = left_join(serum.overlap.new, adverse.pathology, by = "Patient ID")
+serum.adverse.covariates.overlap = left_join(serum.adverse.covariates.overlap, covariates, by = "Patient ID")
+
+EV.adverse.covariates.geneglobe = left_join(EV.geneglobe.new, adverse.pathology, by = "Patient ID")
+EV.adverse.covariates.geneglobe = left_join(EV.adverse.covariates.geneglobe, covariates, by = "Patient ID")
+
+EV.adverse.covariates.geNorm = left_join(EV.geNorm.new, adverse.pathology, by = "Patient ID")
+EV.adverse.covariates.geNorm = left_join(EV.adverse.covariates.geNorm, covariates, by = "Patient ID")
+
+EV.adverse.covariates.NormFinder = left_join(EV.NormFinder.new, adverse.pathology, by = "Patient ID")
+EV.adverse.covariates.NormFinder = left_join(EV.adverse.covariates.NormFinder, covariates, by = "Patient ID")
+
+EV.adverse.covariates.overlap = left_join(EV.overlap.new, biopsy.grade, by = "Patient ID")
+EV.adverse.covariates.overlap = left_join(EV.adverse.covariates.overlap, covariates, by = "Patient ID")
 ```
 
