@@ -1,0 +1,841 @@
+---
+title: "Analysis 3/2"
+author: "Jieqi Tu"
+date: "3/2/2021"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+```{r import data, include=FALSE}
+biopsy.grade = readxl::read_excel(path = "./data/3-1 data/GG_AP_ClinicalOutcomes_Biostats_Updated.xlsx", sheet = "Biopsy Grade Group")
+adverse.pathology = readxl::read_excel(path = "./data/3-1 data/GG_AP_ClinicalOutcomes_Biostats_Updated.xlsx", sheet = "Adverse Pathology")
+adverse.pathology$`Adverse Pathology` = ifelse(adverse.pathology$`Adverse Pathology` == "99", NA, adverse.pathology$`Adverse Pathology`)
+serum.overlap = readxl::read_excel(path = "./data/3-1 data/SerumCT33CompiledRQMASKS.xlsx", sheet = "Overlap")
+serum.geneglobe = readxl::read_excel(path = "./data/3-1 data/SerumCT33CompiledRQMASKS.xlsx", sheet = "GeneGlobe")
+serum.geNorm = readxl::read_excel(path = "./data/3-1 data/SerumCT33CompiledRQMASKS.xlsx", sheet = "geNorm")
+serum.NormFinder = readxl::read_excel(path = "./data/3-1 data/SerumCT33CompiledRQMASKS.xlsx", sheet = "NormFinder")
+EV.overlap = readxl::read_excel(path = "./data/3-1 data/SerumEVCT33_RQMASKS.xlsx", sheet = "Overlap")
+EV.geneglobe = readxl::read_excel(path = "./data/3-1 data/SerumEVCT33_RQMASKS.xlsx", sheet = "GeneGlobe")
+EV.geNorm = readxl::read_excel(path = "./data/3-1 data/SerumEVCT33_RQMASKS.xlsx", sheet = "geNorm")
+EV.NormFinder = readxl::read_excel(path = "./data/3-1 data/SerumEVCT33_RQMASKS.xlsx", sheet = "NormFinder")
+```
+
+
+## Data manipulation
+```{r data manipulation}
+# Serum Overlap
+new = t(serum.overlap)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+serum.overlap = new %>% as.data.frame()
+serum.overlap = rownames_to_column(serum.overlap)
+colnames(serum.overlap)[1] = "Patient ID"
+
+# Serum geNorm
+new = t(serum.geNorm)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+serum.geNorm = new %>% as.data.frame()
+serum.geNorm = rownames_to_column(serum.geNorm)
+colnames(serum.geNorm)[1] = "Patient ID"
+
+# Serum GeneGlobe
+new = t(serum.geneglobe)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+serum.geneglobe = new %>% as.data.frame()
+serum.geneglobe = rownames_to_column(serum.geneglobe)
+colnames(serum.geneglobe)[1] = "Patient ID"
+
+# Serum NormFinder
+new = t(serum.NormFinder)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+serum.NormFinder = new %>% as.data.frame()
+serum.NormFinder = rownames_to_column(serum.NormFinder)
+colnames(serum.NormFinder)[1] = "Patient ID"
+
+# EV Overlap
+new = t(EV.overlap)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+EV.overlap = new %>% as.data.frame()
+EV.overlap = rownames_to_column(EV.overlap)
+colnames(EV.overlap)[1] = "Patient ID"
+
+# EV geNorm
+new = t(EV.geNorm)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+EV.geNorm = new %>% as.data.frame()
+EV.geNorm = rownames_to_column(EV.geNorm)
+colnames(serum.geNorm)[1] = "Patient ID"
+
+# EV GeneGlobe
+new = t(EV.geneglobe)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+EV.geneglobe = new %>% as.data.frame()
+EV.geneglobe = rownames_to_column(EV.geneglobe)
+colnames(EV.geneglobe)[1] = "Patient ID"
+
+# EV NormFinder
+new = t(EV.NormFinder)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+EV.NormFinder = new %>% as.data.frame()
+EV.NormFinder = rownames_to_column(EV.NormFinder)
+colnames(EV.NormFinder)[1] = "Patient ID"
+```
+
+Data format has been changed from wide to long.
+
+## Normality test
+Before the normality test, we need to remove microRNAs that has identical values among all patients.
+```{r tidy data}
+# serum overlap
+for (i in 2:62) {
+  if(sum(!duplicated(serum.overlap[,i]))==1){
+    print(i)
+  }
+}
+serum.overlap.new = serum.overlap[,-c(39, 41, 42, 57)]
+
+# serum geneglobe
+for (i in 2:62) {
+  if(sd(serum.geneglobe[,i]) == 0){
+    print(i)
+  }
+}
+serum.geneglobe.new = serum.geneglobe[,-c(39, 41, 42, 57)]
+
+# serum geNorm
+for (i in 2:62) {
+  if(sd(serum.geNorm[,i]) == 0){
+    print(i)
+  }
+}
+serum.geNorm.new = serum.geNorm[,-c(39, 41, 42, 57)]
+
+# serum NormFinder
+for (i in 2:62) {
+  if(sd(serum.NormFinder[,i]) == 0){
+    print(i)
+  }
+}
+serum.NormFinder.new = serum.NormFinder[,-c(39, 41, 42, 57)]
+
+# EV overlap
+for (i in 2:62) {
+  if(sd(EV.overlap[,i]) == 0){
+    print(i)
+  }
+}
+
+# EV geneglobe
+for (i in 2:62) {
+  if(sum(!duplicated(EV.geneglobe[,i])) == 0){
+    print(i)
+  }
+}
+
+# EV geNorm
+for (i in 2:62) {
+  if(sd(EV.geNorm[,i]) == 0){
+    print(i)
+}  
+}
+
+# EV NormFinder
+for (i in 2:62) {
+  if(sd(EV.NormFinder[,i]) == 0){
+    print(i)
+  }
+}
+
+```
+
+hsa-miR-518e-5p, hsa-miR-708-5p, hsa-miR-9-3p and hsa-miR-218-5p have been removed from serum datasets due to identical values.
+No microRNAs have been removed from EV datasets.
+
+```{r Normality test}
+# serum overlap
+normality.test.serum.overlap = data.frame(
+  microRNA = colnames(serum.overlap.new[-1]),
+  p.value = numeric(57),
+  method = "Overlap"
+)
+
+for (i in 1:57) {
+  test = shapiro.test(serum.overlap.new[,i+1])
+  normality.test.serum.overlap$p.value[i] = test$p.value
+}
+
+# serum geNorm
+normality.test.serum.geNorm = data.frame(
+  microRNA = colnames(serum.geNorm.new[-1]),
+  p.value = numeric(57),
+  method = "geNorm"
+)
+
+for (i in 1:57) {
+  test = shapiro.test(serum.geNorm.new[,i+1])
+  normality.test.serum.geNorm$p.value[i] = test$p.value
+}
+
+# serum geNorm NormFinder
+normality.test.serum.NormFinder = data.frame(
+  microRNA = colnames(serum.NormFinder.new[-1]),
+  p.value = numeric(57),
+  method = "NormFinder"
+)
+
+for (i in 1:57) {
+  test = shapiro.test(serum.NormFinder.new[,i+1])
+  normality.test.serum.NormFinder$p.value[i] = test$p.value
+}
+
+# EV Overlap
+normality.test.EV.overlap = data.frame(
+  microRNA = colnames(EV.overlap[-1]),
+  p.value = numeric(61),
+  method = "Overlap"
+)
+
+for (i in 1:61) {
+  test = shapiro.test(EV.overlap[,i+1])
+  normality.test.EV.overlap$p.value[i] = test$p.value
+}
+
+# EV geNorm
+normality.test.EV.geNorm = data.frame(
+  microRNA = colnames(EV.geNorm[-1]),
+  p.value = numeric(61),
+  method = "geNorm"
+)
+
+for (i in 1:61) {
+  test = shapiro.test(EV.geNorm[,i+1])
+  normality.test.EV.geNorm$p.value[i] = test$p.value
+}
+
+# EV NormFinder
+normality.test.EV.NormFinder = data.frame(
+  microRNA = colnames(EV.NormFinder[-1]),
+  p.value = numeric(61),
+  method = "NormFinder"
+)
+
+for (i in 1:61) {
+  test = shapiro.test(EV.NormFinder[,i+1])
+  normality.test.EV.NormFinder$p.value[i] = test$p.value
+}
+
+normality.test.serum = data.frame(
+  microRNA = colnames(serum.geneglobe.new[-1]),
+  p.value = numeric(57),
+  method = "Gene Globe"
+)
+
+for (i in 1:57) {
+  test = shapiro.test(serum.geneglobe.new[,i+1])
+  normality.test.serum$p.value[i] = test$p.value
+}
+
+# checking distribution for EV
+normality.test.EV = data.frame(
+  microRNA = colnames(EV.geneglobe[-1]),
+  p.value = numeric(61),
+  method = "Gene Globe"
+)
+
+for (i in 1:61) {
+  test = shapiro.test(EV.geneglobe[,i+1])
+  normality.test.EV$p.value[i] = test$p.value
+}
+
+normality.result.serum = rbind(normality.test.serum, normality.test.serum.overlap, normality.test.serum.geNorm, normality.test.serum.NormFinder)
+normality.result.EV = rbind(normality.test.EV, normality.test.EV.overlap, normality.test.EV.geNorm, normality.test.EV.NormFinder)
+
+# Show microRNAs that have normal distribution:
+normality.result.serum %>% filter(p.value >= 0.05)
+normality.result.EV %>% filter(p.value >= 0.05)
+```
+
+## Univariate GLM
+
+Since it keeps giving error message when a variable contains mostly 0, we have to remove variables that keep running into errors.
+```{r removing variables}
+EV.geneglobe.new = EV.geneglobe[,-c(39,41,42,57)]
+EV.geNorm.new = EV.geNorm[,-c(39,41,42,57)]
+EV.overlap.new = EV.overlap[,-c(39,41,42,57)]
+EV.NormFinder.new = EV.NormFinder[,-c(39,41,42,57)]
+```
+
+```{r combine datafiles}
+# datafile combine
+# left join for grade groups
+serum.grade.original = left_join(serum.geneglobe.new, biopsy.grade, by = "Patient ID")
+EV.grade.original = left_join(EV.geneglobe.new, biopsy.grade, by = "Patient ID")
+
+# left join for adverse pathology
+serum.all.original = left_join(serum.grade.original, adverse.pathology, by = "Patient ID")
+EV.all.original = left_join(EV.grade.original, adverse.pathology, by = "Patient ID")
+```
+
+
+```{r GLM fitting}
+grade.serum.result = data.frame(
+  microRNA = colnames(serum.geneglobe.new)[-1],
+  coefficient.estimates = numeric(57),
+  standard.deviation = numeric(57),
+  p.value = numeric(57)
+  
+)
+for (i in 1:57) {
+  model = glm(formula = serum.all.original$`Biopsy Grade Group`~serum.all.original[,i+1])
+  result = summary(model)
+  grade.serum.result$coefficient.estimates[i] = result$coefficients[2,1]
+  grade.serum.result$standard.deviation[i] = result$coefficients[2,2]
+  grade.serum.result$p.value[i] = result$coefficients[2,4]
+}
+
+grade.EV.result = data.frame(
+  microRNA = colnames(EV.geneglobe.new)[-1],
+  coefficient.estimates = numeric(57),
+  standard.deviation = numeric(57),
+  p.value = numeric(57)
+)
+
+for (i in 1:57) {
+  model = glm(formula = EV.all.original$`Biopsy Grade Group`~EV.all.original[,i+1])
+  result = summary(model)
+  grade.EV.result$coefficient.estimates[i] = result$coefficients[2,1]
+  grade.EV.result$standard.deviation = result$coefficients[2,2]
+  grade.EV.result$p.value[i] = result$coefficients[2,4]
+}
+
+# Display result
+grade.serum.geneglobe.result = grade.serum.result[order(grade.serum.result$p.value),];grade.serum.geneglobe.result
+grade.EV.geneglobe.result = grade.EV.result[order(grade.EV.result$p.value),];grade.EV.geneglobe.result
+
+
+# Serum overlap
+grade.serum.overlap.result = data.frame(
+  microRNA = colnames(serum.overlap.new)[-1],
+  coefficient.estimates = numeric(57),
+  standard.deviation = numeric(57),
+  p.value = numeric(57)
+)
+for (i in 1:57) {
+  model = glm(formula = serum.all.original$`Biopsy Grade Group`~serum.overlap.new[,i+1])
+  result = summary(model)
+  grade.serum.overlap.result$coefficient.estimates[i] = result$coefficients[2,1]
+  grade.serum.overlap.result$standard.deviation[i] = result$coefficients[2,2]
+  grade.serum.overlap.result$p.value[i] = result$coefficients[2,4]
+}
+
+grade.serum.overlap.result = grade.serum.overlap.result[order(grade.serum.overlap.result$p.value),]; grade.serum.overlap.result
+
+# Serum geNorm
+grade.serum.geNorm.result = data.frame(
+  microRNA = colnames(serum.geNorm.new)[-1],
+  coefficient.estimates = numeric(57),
+  standard.deviation = numeric(57),
+  p.value = numeric(57)
+)
+for (i in 1:57) {
+  model = glm(formula = serum.all.original$`Biopsy Grade Group`~serum.geNorm.new[,i+1])
+  result = summary(model)
+  grade.serum.geNorm.result$coefficient.estimates[i] = result$coefficients[2,1]
+  grade.serum.geNorm.result$standard.deviation[i] = result$coefficients[2,2]
+  grade.serum.geNorm.result$p.value[i] = result$coefficients[2,4]
+}
+
+grade.serum.geNorm.result = grade.serum.geNorm.result[order(grade.serum.geNorm.result$p.value),]; grade.serum.geNorm.result
+
+# Serum NormFinder
+grade.serum.NormFinder.result = data.frame(
+  microRNA = colnames(serum.NormFinder.new)[-1],
+  coefficient.estimates = numeric(57),
+  standard.deviation = numeric(57),
+  p.value = numeric(57)
+)
+for (i in 1:57) {
+  model = glm(formula = serum.all.original$`Biopsy Grade Group`~serum.NormFinder.new[,i+1])
+  result = summary(model)
+  grade.serum.NormFinder.result$coefficient.estimates[i] = result$coefficients[2,1]
+  grade.serum.NormFinder.result$standard.deviation[i] = result$coefficients[2,2]
+  grade.serum.NormFinder.result$p.value[i] = result$coefficients[2,4]
+}
+
+grade.serum.NormFinder.result = grade.serum.NormFinder.result[order(grade.serum.NormFinder.result$p.value),]; grade.serum.NormFinder.result
+
+EV.grade.overlap = left_join(EV.overlap.new,biopsy.grade, by = "Patient ID")
+
+# EV overlap
+grade.EV.overlap.result = data.frame(
+  microRNA = colnames(EV.overlap.new)[-1],
+  coefficient.estimates = numeric(57),
+  standard.deviation = numeric(57),
+  p.value = numeric(57)
+)
+for (i in 1:57) {
+  model = glm(formula = EV.grade.overlap$`Biopsy Grade Group`~ EV.overlap.new[,i+1])
+  result = summary(model)
+  grade.EV.overlap.result$coefficient.estimates[i] = result$coefficients[2,1]
+  grade.EV.overlap.result$standard.deviation[i] = result$coefficients[2,2]
+  grade.EV.overlap.result$p.value[i] = result$coefficients[2,4]
+}
+
+grade.EV.overlap.result = grade.EV.overlap.result[order(grade.EV.overlap.result$p.value),]; grade.EV.overlap.result
+
+# EV geNorm
+grade.EV.geNorm.result = data.frame(
+  microRNA = colnames(EV.geNorm.new)[-1],
+  coefficient.estimates = numeric(57),
+  standard.deviation = numeric(57),
+  p.value = numeric(57)
+)
+for (i in 1:57) {
+  model = glm(formula = EV.grade.overlap$`Biopsy Grade Group`~ EV.geNorm.new[,i+1])
+  result = summary(model)
+  grade.EV.geNorm.result$coefficient.estimates[i] = result$coefficients[2,1]
+  grade.EV.geNorm.result$standard.deviation[i] = result$coefficients[2,2]
+  grade.EV.geNorm.result$p.value[i] = result$coefficients[2,4]
+}
+
+grade.EV.geNorm.result = grade.EV.geNorm.result[order(grade.EV.geNorm.result$p.value),]; grade.EV.geNorm.result
+
+
+# EV Norm Finder
+grade.EV.NormFinder.result = data.frame(
+  microRNA = colnames(EV.NormFinder.new)[-1],
+  coefficient.estimates = numeric(57),
+  standard.deviation = numeric(57),
+  p.value = numeric(57)
+)
+for (i in 1:57) {
+  model = glm(formula = EV.grade.overlap$`Biopsy Grade Group`~ EV.NormFinder.new[,i+1])
+  result = summary(model)
+  grade.EV.NormFinder.result$coefficient.estimates[i] = result$coefficients[2,1]
+  grade.EV.NormFinder.result$standard.deviation[i] = result$coefficients[2,2]
+  grade.EV.NormFinder.result$p.value[i] = result$coefficients[2,4]
+}
+
+grade.EV.NormFinder.result = grade.EV.NormFinder.result[order(grade.EV.NormFinder.result$p.value),]; grade.EV.NormFinder.result
+
+# Collect the results
+```
+
+```{r AP GLM fitting}
+# univariate GLM
+adverse.serum.result = data.frame(
+  microRNA = colnames(serum.geneglobe.new)[-1],
+  coefficient.estimates = numeric(57),
+  standard.deviation = numeric(57),
+  p.value = numeric(57)
+)
+for (i in 1:57) {
+  model = glm(formula = serum.all.original$`Adverse Pathology`~serum.all.original[,i+1], family = "binomial")
+  result = summary(model)
+  adverse.serum.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.serum.result$standard.deviation[i] = result$coefficients[2,2]
+  adverse.serum.result$p.value[i] = result$coefficients[2,4]
+}
+
+adverse.EV.result = data.frame(
+  microRNA = colnames(EV.geneglobe.new)[-1],
+  coefficient.estimates = numeric(57),
+  standard.deviation = numeric(57),
+  p.value = numeric(57)
+)
+
+for (i in 1:57) {
+  model = glm(formula = EV.all.original$`Adverse Pathology`~EV.all.original[,i+1], family = "binomial")
+  result = summary(model)
+  adverse.EV.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.EV.result$standard.deviation[i] = result$coefficients[2,2]
+  adverse.EV.result$p.value[i] = result$coefficients[2,4]
+}
+
+# Display result
+adverse.serum.geneglobe.result = adverse.serum.result[order(grade.serum.result$p.value),];adverse.serum.geneglobe.result
+adverse.EV.geneglobe.result = grade.EV.geneglobe.result[order(grade.EV.result$p.value),]; adverse.EV.geneglobe.result
+
+
+
+# Serum overlap
+adverse.serum.overlap.result = data.frame(
+  microRNA = colnames(serum.overlap.new)[-1],
+  coefficient.estimates = numeric(57),
+  standard.deviation = numeric(57),
+  p.value = numeric(57)
+)
+for (i in 1:57) {
+  model = glm(formula = serum.all.original$`Adverse Pathology`~serum.overlap.new[,i+1], family = "binomial")
+  result = summary(model)
+  adverse.serum.overlap.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.serum.overlap.result$standard.deviation[i] = result$coefficients[2,2]
+  adverse.serum.overlap.result$p.value[i] = result$coefficients[2,4]
+}
+
+adverse.serum.overlap.result = adverse.serum.overlap.result[order(adverse.serum.overlap.result$p.value),]; adverse.serum.overlap.result
+
+# Serum geNorm
+adverse.serum.geNorm.result = data.frame(
+  microRNA = colnames(serum.geNorm.new)[-1],
+  coefficient.estimates = numeric(57),
+  standard.deviation = numeric(57),
+  p.value = numeric(57)
+)
+for (i in 1:57) {
+  model = glm(formula = serum.all.original$`Adverse Pathology`~serum.geNorm.new[,i+1], family = "binomial")
+  result = summary(model)
+  adverse.serum.geNorm.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.serum.geNorm.result$standard.deviation[i] = result$coefficients[2,2]
+  adverse.serum.geNorm.result$p.value[i] = result$coefficients[2,4]
+}
+
+adverse.serum.geNorm.result = adverse.serum.geNorm.result[order(adverse.serum.geNorm.result$p.value),]; adverse.serum.geNorm.result
+
+# Serum NormFinder
+adverse.serum.NormFinder.result = data.frame(
+  microRNA = colnames(serum.NormFinder.new)[-1],
+  coefficient.estimates = numeric(57),
+  standard.deviation = numeric(57),
+  p.value = numeric(57)
+)
+for (i in 1:57) {
+  model = glm(formula = serum.all.original$`Adverse Pathology`~serum.NormFinder.new[,i+1], family = "binomial")
+  result = summary(model)
+  adverse.serum.NormFinder.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.serum.NormFinder.result$standard.deviation[i] = result$coefficients[2,2]
+  adverse.serum.NormFinder.result$p.value[i] = result$coefficients[2,4]
+}
+
+adverse.serum.NormFinder.result = adverse.serum.NormFinder.result[order(adverse.serum.NormFinder.result$p.value),]; adverse.serum.NormFinder.result
+
+EV.adverse.overlap = left_join(EV.overlap.new, adverse.pathology, by = "Patient ID")
+
+# EV overlap
+adverse.EV.overlap.result = data.frame(
+  microRNA = colnames(EV.overlap.new)[-1],
+  coefficient.estimates = numeric(57),
+  standard.deviation = numeric(57),
+  p.value = numeric(57)
+)
+for (i in 1:57) {
+  model = glm(formula = EV.adverse.overlap$`Adverse Pathology`~ EV.overlap.new[,i+1], family = "binomial")
+  result = summary(model)
+  adverse.EV.overlap.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.EV.overlap.result$standard.deviation[i] = result$coefficients[2,2]
+  adverse.EV.overlap.result$p.value[i] = result$coefficients[2,4]
+}
+
+adverse.EV.overlap.result = adverse.EV.overlap.result[order(adverse.EV.overlap.result$p.value),]
+
+# EV geNorm
+adverse.EV.geNorm.result = data.frame(
+  microRNA = colnames(EV.geNorm.new)[-1],
+  coefficient.estimates = numeric(57),
+  standard.deviation = numeric(57),
+  p.value = numeric(57)
+)
+for (i in 1:57) {
+  model = glm(formula = EV.adverse.overlap$`Adverse Pathology`~ EV.geNorm.new[,i+1], family = "binomial")
+  result = summary(model)
+  adverse.EV.geNorm.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.EV.geNorm.result$standard.deviation[i] = result$coefficients[2,4]
+  adverse.EV.geNorm.result$p.value[i] = result$coefficients[2,4]
+}
+
+adverse.EV.geNorm.result = adverse.EV.geNorm.result[order(adverse.EV.geNorm.result$p.value),]; adverse.EV.geNorm.result
+
+
+# EV Norm Finder
+adverse.EV.NormFinder.result = data.frame(
+  microRNA = colnames(EV.NormFinder.new)[-1],
+  coefficient.estimates = numeric(57),
+  standard.deviation = numeric(57),
+  p.value = numeric(57)
+)
+for (i in 1:57) {
+  model = glm(formula = EV.adverse.overlap$`Adverse Pathology`~ EV.NormFinder.new[,i+1], family = "binomial")
+  result = summary(model)
+  adverse.EV.NormFinder.result$coefficient.estimates[i] = result$coefficients[2,1]
+  adverse.EV.NormFinder.result$standard.deviation[i] = result$coefficients[2,2]
+  adverse.EV.NormFinder.result$p.value[i] = result$coefficients[2,4]
+}
+
+adverse.EV.NormFinder.result = adverse.EV.NormFinder.result[order(adverse.EV.NormFinder.result$p.value),]; adverse.EV.NormFinder.result
+```
+
+## Variable selection
+Firstly we extracted the significant variables.
+```{r variable selection}
+# get the significant results
+grade.serum.geneglobe.result.significant = 
+  grade.serum.geneglobe.result %>% filter(p.value <= 0.05)
+
+grade.serum.geneglobe.result.significant
+
+grade.EV.geneglobe.result.significant = 
+  grade.EV.geneglobe.result %>% filter(p.value <= 0.05)
+
+grade.EV.geneglobe.result.significant
+
+# serum overlap
+grade.serum.overlap.result.sigficant = 
+  grade.serum.overlap.result %>% filter(p.value <= 0.05)
+
+grade.serum.overlap.result.sigficant
+
+# serum geNorm
+grade.serum.geNorm.result.sigficant = 
+  grade.serum.geNorm.result %>% filter(p.value <= 0.05)
+
+grade.serum.geNorm.result.sigficant
+
+# serum Norm Finder
+grade.serum.NormFinder.result.sigficant = 
+  grade.serum.NormFinder.result %>% filter(p.value <= 0.05)
+
+grade.serum.NormFinder.result.sigficant 
+
+# EV overlap
+grade.EV.overlap.result.sigficant = 
+  grade.EV.overlap.result %>% filter(p.value <= 0.05)
+
+grade.EV.overlap.result.sigficant
+
+# EV geNorm
+grade.EV.geNorm.result.sigficant = 
+  grade.EV.geNorm.result %>% filter(p.value <= 0.05)
+
+grade.EV.geNorm.result.sigficant
+
+# EV Norm Finder
+grade.EV.NormFinder.result.sigficant = 
+  grade.EV.NormFinder.result %>% filter(p.value <= 0.05)
+
+grade.EV.NormFinder.result.sigficant
+```
+
+```{r variable selection2}
+# get the significant results
+adverse.serum.geneglobe.result.significant = 
+  adverse.serum.geneglobe.result %>% filter(p.value <= 0.05)
+
+adverse.serum.geneglobe.result.significant
+
+adverse.EV.geneglobe.result.significant = 
+  adverse.EV.geneglobe.result %>% filter(p.value <= 0.05)
+
+adverse.EV.geneglobe.result.significant
+
+# serum overlap
+adverse.serum.overlap.result.sigficant = 
+  adverse.serum.overlap.result %>% filter(p.value <= 0.05)
+
+adverse.serum.overlap.result.sigficant
+
+# serum geNorm
+adverse.serum.geNorm.result.sigficant = 
+  adverse.serum.geNorm.result %>% filter(p.value <= 0.05)
+
+adverse.serum.geNorm.result.sigficant
+
+# serum Norm Finder
+adverse.serum.NormFinder.result.sigficant = 
+  adverse.serum.NormFinder.result %>% filter(p.value <= 0.05)
+
+adverse.serum.NormFinder.result.sigficant 
+
+# EV overlap
+adverse.EV.overlap.result.sigficant = 
+  adverse.EV.overlap.result %>% filter(p.value <= 0.05)
+
+adverse.EV.overlap.result.sigficant
+
+# EV geNorm
+adverse.EV.geNorm.result.sigficant = 
+  adverse.EV.geNorm.result %>% filter(p.value <= 0.05)
+
+adverse.EV.geNorm.result.sigficant
+
+# EV Norm Finder
+adverse.EV.NormFinder.result.sigficant = 
+  adverse.EV.NormFinder.result %>% filter(p.value <= 0.05)
+
+adverse.EV.NormFinder.result.sigficant
+```
+
+Then we do the backward stepwise selection.
+
+#### Outcome: biopsy grade group
+```{r backward selection}
+library(MASS)
+# serum geneglobe
+fullmodel.serum.geneglobe = glm(data = serum.all.original, formula = `Biopsy Grade Group`~`hsa-miR-1246`+`hsa-miR-214-3p`+`hsa-miR-301a-3p` + `hsa-miR-125b-5p` + `hsa-miR-374a-5p`)
+serum.grade.final = stepAIC(object = fullmodel.serum.geneglobe, direction = "backward")
+final.model.serum.grade.original = glm(data = serum.all.original, formula = `Biopsy Grade Group`~`hsa-miR-1246`+`hsa-miR-214-3p`+`hsa-miR-374a-5p`)
+summary(final.model.serum.grade.original)
+
+# serum overlap
+fullmodel.serum.overlap = glm(formula = serum.all.original$`Biopsy Grade Group`~ serum.overlap.new$`hsa-miR-16-5p`+ serum.overlap.new$`hsa-let-7b-5p`+ serum.overlap.new$`hsa-miR-19b-3p` + serum.overlap.new$`hsa-miR-27a-3p` + serum.overlap.new$`hsa-miR-320a`+ serum.overlap.new$`hsa-miR-1246` + serum.overlap.new$`hsa-miR-451a` + serum.overlap.new$`hsa-miR-363-3p` + serum.overlap.new$`hsa-miR-27b-3p` + serum.overlap.new$`hsa-miR-106a-5p` + serum.overlap.new$`hsa-miR-93-5p` + serum.overlap.new$`hsa-miR-130b-3p` + serum.overlap.new$`hsa-miR-24-3p` + serum.overlap.new$`hsa-miR-23a-3p` + serum.overlap.new$`hsa-miR-29a-3p`)
+
+step.serum.grade.overlap = stepAIC(object = fullmodel.serum.overlap, direction = "backward")
+final.model.serum.grade.overlap = glm(formula = serum.all.original$`Biopsy Grade Group`~ serum.overlap.new$`hsa-miR-29a-3p` + serum.overlap.new$`hsa-miR-24-3p`+  serum.overlap.new$`hsa-miR-27a-3p`  + serum.overlap.new$`hsa-miR-130b-3p` + serum.overlap.new$`hsa-miR-23a-3p` + serum.overlap.new$`hsa-let-7b-5p` + serum.overlap.new$`hsa-miR-16-5p`)
+summary(final.model.serum.grade.overlap)
+
+# serum geNorm
+fullmodel.serum.geNorm = glm(formula = serum.all.original$`Biopsy Grade Group`~ serum.geNorm.new$`hsa-miR-16-5p`+ serum.geNorm.new$`hsa-let-7b-5p`+ serum.geNorm.new$`hsa-miR-19b-3p` + serum.geNorm.new$`hsa-miR-27a-3p` + serum.geNorm.new$`hsa-miR-1246` + serum.geNorm.new$`hsa-miR-451a` + serum.geNorm.new$`hsa-miR-363-3p` + serum.geNorm.new$`hsa-miR-27b-3p` + serum.geNorm.new$`hsa-miR-93-5p` + serum.geNorm.new$`hsa-miR-130b-3p` + serum.geNorm.new$`hsa-miR-24-3p` + serum.geNorm.new$`hsa-miR-106a-5p` + serum.geNorm.new$`hsa-miR-23a-3p` + serum.geNorm.new$`hsa-miR-125b-5p`)
+
+step.serum.grade.geNorm = stepAIC(object = fullmodel.serum.geNorm, direction = "backward")
+final.model.serum.grade.geNorm = glm(formula = serum.all.original$`Biopsy Grade Group`~ serum.geNorm.new$`hsa-miR-29a-3p` + serum.geNorm.new$`hsa-miR-320a` + serum.geNorm.new$`hsa-miR-363-3p` + serum.geNorm.new$`hsa-miR-125b-5p`)
+summary(final.model.serum.grade.geNorm)
+
+# serum NormFinder
+fullmodel.serum.NormFinder = glm(formula = serum.all.original$`Biopsy Grade Group`~ serum.NormFinder.new$`hsa-miR-363-3p` + serum.NormFinder.new$`hsa-let-7b-5p` + serum.NormFinder.new$`hsa-miR-16-5p` + serum.NormFinder.new$`hsa-miR-1246` + serum.NormFinder.new$`hsa-miR-23a-3p` + serum.NormFinder.new$`hsa-miR-125b-5p` + serum.NormFinder.new$`hsa-let-7b-5p` + serum.NormFinder.new$`hsa-miR-27b-3p` + serum.NormFinder.new$`hsa-miR-29a-3p` + serum.NormFinder.new$`hsa-miR-21-5p` + serum.NormFinder.new$`hsa-miR-130b-3p`)
+
+step.serum.grade.NormFinder = stepAIC(object = fullmodel.serum.NormFinder, direction = "backward")
+fullmodel.serum.NormFinder = glm(formula = serum.all.original$`Biopsy Grade Group`~ serum.NormFinder.new$`hsa-let-7b-5p` + serum.NormFinder.new$`hsa-miR-1246` + serum.NormFinder.new$`hsa-miR-23a-3p` + serum.NormFinder.new$`hsa-miR-130b-3p` + serum.NormFinder.new$`hsa-miR-125b-5p` + serum.NormFinder.new$`hsa-miR-16-5p`)
+summary(fullmodel.serum.NormFinder)
+```
+
+```{r selection 4}
+# EV overlap
+fullmodel.EV.overlap = glm(formula = EV.all.original$`Biopsy Grade Group`~ EV.overlap.new$`hsa-miR-191-5p`+ EV.overlap.new$`hsa-miR-335-5p` + EV.overlap.new$`hsa-miR-107` + EV.overlap.new$`hsa-miR-130b-3p` + EV.overlap.new$`hsa-miR-221-3p` + EV.overlap.new$`hsa-miR-103a-3p` + EV.overlap.new$`hsa-miR-30c-5p` + EV.overlap.new$`hsa-let-7a-5p` + EV.overlap.new$`hsa-miR-26b-5p` + EV.overlap.new$`hsa-miR-330-3p`)
+
+step.EV.grade.overlap = stepAIC(object = fullmodel.EV.overlap, direction = "backward")
+
+final.model.EV.grade.overlap = glm(formula = EV.all.original$`Biopsy Grade Group`~ EV.overlap.new$`hsa-miR-335-5p` + EV.overlap.new$`hsa-miR-130b-3p` + EV.overlap.new$`hsa-miR-26b-5p`)
+summary(final.model.EV.grade.overlap)
+
+# EV geNorm
+fullmodel.EV.geNorm = glm(formula = EV.all.original$`Biopsy Grade Group`~ EV.geNorm.new$`hsa-miR-191-5p`+ EV.geNorm.new$`hsa-miR-130b-3p`+ EV.geNorm.new$`hsa-miR-335-5p` + EV.geNorm.new$`hsa-miR-107` + EV.geNorm.new$`hsa-miR-103a-3p` + EV.geNorm.new$`hsa-miR-221-3p` + EV.geNorm.new$`hsa-miR-26b-5p` + EV.geNorm.new$`hsa-miR-30c-5p` + EV.geNorm.new$`hsa-let-7a-5p` + EV.geNorm.new$`hsa-miR-330-3p` + EV.geNorm.new$`hsa-miR-199a-3p` + EV.geNorm.new$`hsa-miR-199a-5p` + EV.geNorm.new$`hsa-miR-24-3p`)
+
+step.EV.grade.geNorm = stepAIC(object = fullmodel.EV.geNorm, direction = "backward")
+
+final.model.EV.grade.geNorm= glm(formula = EV.all.original$`Biopsy Grade Group`~ EV.geNorm.new$`hsa-miR-335-5p` + EV.geNorm.new$`hsa-miR-130b-3p` + EV.geNorm.new$`hsa-miR-26b-5p`)
+summary(final.model.EV.grade.geNorm)
+
+# EV NormFinder
+fullmodel.EV.NormFinder = glm(formula = EV.all.original$`Biopsy Grade Group`~ EV.NormFinder.new$`hsa-miR-335-5p`+ EV.NormFinder.new$`hsa-miR-191-5p`+ EV.NormFinder.new$`hsa-miR-221-3p` + EV.NormFinder.new$`hsa-miR-143-3p` + EV.NormFinder.new$`hsa-miR-107` + EV.NormFinder.new$`hsa-miR-130b-3p` + EV.NormFinder.new$`hsa-miR-30a-5p` + EV.NormFinder.new$`hsa-miR-103a-3p` +  EV.NormFinder.new$`hsa-miR-222-3p`)
+
+step.EV.grade.NormFinder = stepAIC(object = fullmodel.EV.NormFinder, direction = "backward")
+final.model.EV.grade.NormFinder = glm(formula = EV.all.original$`Biopsy Grade Group`~ EV.NormFinder.new$`hsa-miR-130b-3p` + EV.NormFinder.new$`hsa-miR-143-3p` + EV.NormFinder.new$`hsa-miR-335-5p` + EV.NormFinder.new$`hsa-miR-191-5p`)
+```
+
+#### Outcome: Adverse pathology
+```{r ap serum selection}
+# serum overlap
+fullmodel.serum.overlap.ap = glm(data = serum.all.original, formula = `Adverse Pathology`~ serum.overlap.new$`hsa-miR-125b-5p` + serum.overlap.new$`hsa-miR-21-5p` + serum.overlap.new$`hsa-miR-199a-3p` + serum.overlap.new$`hsa-miR-25-3p` + serum.overlap.new$`hsa-miR-23a-3p` + serum.overlap.new$`hsa-miR-107` + serum.overlap.new$`hsa-miR-26b-5p` + serum.overlap.new$`hsa-miR-1246`+ serum.overlap.new$`hsa-miR-330-3p` + serum.overlap.new$`hsa-miR-103a-3p` + serum.overlap.new$`hsa-miR-16-5p` + serum.overlap.new$`hsa-miR-93-5p` + serum.overlap.new$`hsa-miR-375` + serum.overlap.new$`hsa-miR-19b-3p` + serum.overlap.new$`hsa-miR-122-5p`, family = "binomial")
+
+step.EV.adverse.overlap.final = stepAIC(object = fullmodel.serum.overlap.ap, direction = "backward")
+final.model.serum.adverse.overlap = glm(data = serum.all.original, formula = `Adverse Pathology`~ serum.overlap.new$`hsa-miR-330-3p` + serum.overlap.new$`hsa-miR-1246` + serum.overlap.new$`hsa-miR-122-5p` + serum.overlap.new$`hsa-miR-93-5p` + serum.overlap.new$`hsa-miR-107`, family = "binomial")
+summary(final.model.serum.adverse.overlap)
+
+# serum geNorm
+fullmodel.serum.geNorm.ap = glm(data = serum.all.original, formula = `Adverse Pathology`~ serum.geNorm.new$`hsa-miR-25-3p` + serum.geNorm.new$`hsa-miR-30c-5p` + serum.geNorm.new$`hsa-miR-16-5p` + serum.geNorm.new$`hsa-let-7a-5p` + serum.geNorm.new$`hsa-miR-1246` + serum.geNorm.new$`hsa-miR-24-3p`, family = "binomial")
+step.EV.adverse.final = stepAIC(object = fullmodel.serum.geNorm.ap, direction = "backward")
+final.model.serum.adverse.geNorm = glm(data = serum.all.original, formula = `Adverse Pathology`~ serum.geNorm.new$`hsa-miR-1246` + serum.geNorm.new$`hsa-miR-25-3p`, family = "binomial")
+summary(final.model.serum.adverse.geNorm)
+
+
+# serum NormFinder
+fullmodel.serum.NormFinder.ap = glm(data = serum.all.original, formula = `Adverse Pathology`~ serum.NormFinder.new$`hsa-let-7a-5p` + serum.NormFinder.new$`hsa-miR-24-3p` + serum.NormFinder.new$`hsa-miR-30c-5p` + serum.NormFinder.new$`hsa-miR-1246` + serum.NormFinder.new$`hsa-miR-16-5p` + serum.NormFinder.new$`hsa-miR-25-3p`, family = "binomial")
+step.EV.adverse.final = stepAIC(object = fullmodel.serum.NormFinder.ap, direction = "backward")
+final.model.serum.adverse.NormFinder = glm(data = serum.all.original, formula = `Adverse Pathology`~ serum.NormFinder.new$`hsa-miR-1246` + serum.NormFinder.new$`hsa-miR-25-3p`, family = "binomial")
+summary(final.model.serum.adverse.NormFinder)
+```
+
+
+```{r ap EV selection}
+# EV geneglobe
+fullmodel.EV.geneglobe.ap = glm(data = EV.all.original, formula = `Adverse Pathology`~`hsa-miR-31-5p`, family = "binomial")
+step.EV.adverse.final = stepAIC(object = fullmodel.EV.geneglobe.ap, direction = "backward")
+final.model.EV.adverse =  glm(data = EV.all.original, formula = `Adverse Pathology`~`hsa-let-7a-5p`, family = "binomial")
+summary(final.model.EV.adverse)
+
+## EV overlap
+fullmodel.EV.overlap.AP = glm(data = EV.all.original, formula = `Adverse Pathology`~ EV.overlap.new$`hsa-miR-125b-5p`+ EV.overlap.new$`hsa-miR-21-5p` + EV.overlap.new$`hsa-miR-199a-3p` + EV.overlap.new$`hsa-miR-25-3p` + EV.overlap.new$`hsa-miR-23a-3p` + EV.overlap.new$`hsa-miR-107` + EV.overlap.new$`hsa-miR-26b-5p` + EV.overlap.new$`hsa-miR-1246` + EV.overlap.new$`hsa-miR-330-3p` + EV.overlap.new$`hsa-miR-103a-3p` + EV.overlap.new$`hsa-miR-16-5p` + EV.overlap.new$`hsa-miR-93-5p` + EV.overlap.new$`hsa-miR-375` + EV.overlap.new$`hsa-miR-19b-3p` + EV.overlap.new$`hsa-miR-122-5p`,family = "binomial")
+step.EV.adverse.overlap = stepAIC(object = fullmodel.EV.overlap.AP, direction = "backward")
+final.model.EV.adverse.overlap = glm(data = EV.all.original, formula = `Adverse Pathology`~ EV.overlap.new$`hsa-miR-199a-3p` + EV.overlap.new$`hsa-miR-375` + EV.overlap.new$`hsa-miR-103a-3p` + EV.overlap.new$`hsa-miR-1246`+ EV.overlap.new$`hsa-miR-125b-5p` + EV.overlap.new$`hsa-miR-93-5p` + EV.overlap.new$`hsa-miR-122-5p` + EV.overlap.new$`hsa-miR-25-3p`, family = "binomial")
+summary(final.model.EV.adverse.overlap)
+
+
+# EV geNorm
+fullmodel.EV.geNorm.AP = glm(data = EV.all.original, formula = `Adverse Pathology`~ EV.geNorm.new$`hsa-miR-363-3p`+ EV.geNorm.new$`hsa-miR-19b-3p` + EV.geNorm.new$`hsa-miR-16-5p` + EV.geNorm.new$`hsa-let-7a-5p` + EV.geNorm.new$`hsa-miR-451a` + EV.geNorm.new$`hsa-miR-30c-5p` + EV.geNorm.new$`hsa-miR-301a-3p` + EV.geNorm.new$`hsa-miR-199a-5p` + EV.geNorm.new$`hsa-miR-26b-5p` + EV.geNorm.new$`hsa-miR-107` + EV.geNorm.new$`hsa-miR-103a-3p` + EV.geNorm.new$`hsa-miR-191-5p` + EV.geNorm.new$`hsa-miR-27b-3p`,family = "binomial")
+
+step.EV.adverse.geNorm = stepAIC(object = fullmodel.EV.geNorm.AP, direction = "backward")
+final.model.EV.adverse.geNorm = glm(data = EV.all.original, formula = `Adverse Pathology`~ EV.geNorm.new$`hsa-miR-199a-5p` + EV.geNorm.new$`hsa-miR-27b-3p` +
+EV.geNorm.new$`hsa-miR-451a` + EV.geNorm.new$`hsa-miR-363-3p` + EV.geNorm.new$`hsa-miR-107` + EV.geNorm.new$`hsa-miR-19b-3p` + EV.geNorm.new$`hsa-miR-301a-3p` + EV.geNorm.new$`hsa-let-7a-5p` + EV.geNorm.new$`hsa-miR-103a-3p`, family = "binomial")
+summary(final.model.EV.adverse.geNorm)
+
+
+# EV NormFinder
+fullmodel.EV.NormFinder.AP = glm(data = EV.all.original, formula = `Adverse Pathology`~ EV.NormFinder.new$`hsa-miR-25-3p`+ EV.NormFinder.new$`hsa-miR-363-3p`+ EV.NormFinder.new$`hsa-miR-19b-3p` + EV.NormFinder.new$`hsa-miR-16-5p` + EV.NormFinder.new$`hsa-miR-30c-5p` + EV.NormFinder.new$`hsa-miR-451a` + EV.NormFinder.new$`hsa-miR-222-3p` + EV.NormFinder.new$`hsa-miR-93-5p` + EV.NormFinder.new$`hsa-miR-320a` + EV.NormFinder.new$`hsa-miR-199a-5p` + EV.NormFinder.new$`hsa-miR-301a-3p` + EV.NormFinder.new$`hsa-miR-107` + EV.NormFinder.new$`hsa-miR-191-5p` + EV.NormFinder.new$`hsa-miR-345-5p` + EV.NormFinder.new$`hsa-miR-103a-3p`,family = "binomial")
+
+step.EV.adverse.NormFinder = stepAIC(object = fullmodel.EV.NormFinder.AP, direction = "backward")
+final.model.EV.adverse.NormFinder = glm(data = EV.all.original, formula = `Adverse Pathology`~ EV.NormFinder.new$`hsa-miR-363-3p`+ EV.NormFinder.new$`hsa-miR-19b-3p` + EV.NormFinder.new$`hsa-miR-103a-3p` + EV.NormFinder.new$`hsa-miR-93-5p`  + EV.NormFinder.new$`hsa-miR-30c-5p` + EV.NormFinder.new$`hsa-miR-451a` + EV.NormFinder.new$`hsa-miR-25-3p`, family = "binomial")
+summary(final.model.EV.adverse.NormFinder)
+```
+hsa-let-7a-5p was removed from the GLM fitting in EV NormFinder due to errors.
+hsa-miR-25-3p was removed from the GLM fitting in EV geNorm due to errors.
+
+## Regression models
+Read in data files for covariate.
+```{r data manipulation}
+# Import covariate
+covariates = readxl::read_excel(path = "./data/3-1 data/Clinical Covariates_Updated.xlsx", sheet = "Covariates")
+
+# Combine datasets
+serum.grade.covariates.geneglobe = left_join(serum.geneglobe.new, biopsy.grade, by = "Patient ID")
+serum.grade.covariates.geneglobe = left_join(serum.grade.covariates.geneglobe, covariates, by = "Patient ID")
+
+serum.grade.covariates.geNorm = left_join(serum.geNorm.new, biopsy.grade, by = "Patient ID")
+serum.grade.covariates.geNorm = left_join(serum.grade.covariates.geNorm, covariates, by = "Patient ID")
+
+serum.grade.covariates.NormFinder = left_join(serum.NormFinder.new, biopsy.grade, by = "Patient ID")
+serum.grade.covariates.NormFinder = left_join(serum.grade.covariates.NormFinder, covariates, by = "Patient ID")
+
+serum.grade.covariates.overlap = left_join(serum.overlap.new, biopsy.grade, by = "Patient ID")
+serum.grade.covariates.overlap = left_join(serum.grade.covariates.overlap, covariates, by = "Patient ID")
+
+EV.grade.covariates.geneglobe = left_join(EV.geneglobe.new, biopsy.grade, by = "Patient ID")
+EV.grade.covariates.geneglobe = left_join(EV.grade.covariates.geneglobe, covariates, by = "Patient ID")
+
+EV.grade.covariates.geNorm = left_join(EV.geNorm.new, biopsy.grade, by = "Patient ID")
+EV.grade.covariates.geNorm = left_join(EV.grade.covariates.geNorm, covariates, by = "Patient ID")
+
+EV.grade.covariates.NormFinder = left_join(EV.NormFinder.new, biopsy.grade, by = "Patient ID")
+EV.grade.covariates.NormFinder = left_join(EV.grade.covariates.NormFinder, covariates, by = "Patient ID")
+
+EV.grade.covariates.overlap = left_join(EV.overlap.new, biopsy.grade, by = "Patient ID")
+EV.grade.covariates.overlap = left_join(EV.grade.covariates.overlap, covariates, by = "Patient ID")
+```
+
