@@ -810,13 +810,15 @@ hsa-miR-25-3p was removed from the GLM fitting in EV geNorm due to errors.
 ## Regression models
 Combine grade 1-2 as low-grade and grade 3-5 as high-grade.
 ```{r grade combination}
-biopsy.grade$grades = ifelse(biopsy.grade$`Biopsy Grade Group` <= 2, "low", "high")
+biopsy.grade$grades = ifelse(biopsy.grade$`Biopsy Grade Group` <= 2, "low", "high") %>% as.factor()
+biopsy.grade = biopsy.grade[,-2]
 ```
 
 Read in data files for covariates.
 ```{r data manipulation}
 # Import covariate
 covariates = readxl::read_excel(path = "./data/3-1 data/Clinical Covariates_Updated.xlsx", sheet = "Covariates")
+covariates = covariates[,-2]
 
 # Combine datasets for biopsy grade group
 serum.grade.covariates.geneglobe = left_join(serum.geneglobe.new, biopsy.grade, by = "Patient ID")
@@ -872,10 +874,78 @@ EV.adverse.covariates.overlap = left_join(EV.adverse.covariates.overlap, covaria
 ```
 
 
-### Logistic regression
+### Logistic regression for classification
 
-We firstly want to build logistic regression model
-```{r logistic regresiion for biopsy grade group}
+We firstly want to build logistic regression model using caret package.
+Since we have 203 observations for serum miRs and 118 observations for EV miRs. We want to subset the training set as 80% of the original data.
 
+#### Outcome: biopsy grade groups
+```{r logistic regresiion for biopsy grade group, warning=F}
+library(caret)
+library(pROC)
+set.seed(1029)
+rowTrain = createDataPartition(y = serum.grade.covariates.geneglobe$grades,
+                               p = 0.75,
+                               list = FALSE)
+
+ctrl = trainControl(method = "repeatedcv",
+                    repeats = 5,
+                    summaryFunction = twoClassSummary,
+                    classProbs = TRUE)
+# Serum geneglobe
+glm.serum.grade.geneglobe = train(x = serum.grade.covariates.geneglobe[rowTrain, -c(1, 59)],
+                                  y = serum.grade.covariates.geneglobe$grades[rowTrain],
+                                  method = "glm",
+                                  metric = "ROC",
+                                  trControl = ctrl)
+
+rf.grid = expand.grid(mtry = 1:20,
+                      splitrule = "gini",
+                      min.node.size = 1:20)
+
+rf.serum.grade.geneglobe = train(x = serum.grade.covariates.geneglobe[rowTrain, -c(1, 59)],
+                                 y = serum.grade.covariates.geneglobe$grades[rowTrain],
+                                 method = "ranger",
+                                 tuneGrid = rf.grid,
+                                 metric = "ROC",
+                                 trControl = ctrl)
+
+glm.predict.serum.grade.geneglobe = predict(glm.serum.grade.geneglobe, newdata = serum.grade.covariates.geneglobe[-rowTrain,], type = "prob")[,2]
+rf.predict.serum.grade.geneglobe = predict(rf.serum.grade.geneglobe, newdata = serum.grade.covariates.geneglobe[-rowTrain,], type = "prob")[,2]
+roc.glm.serum.grade.geneglobe = roc(serum.grade.covariates.geneglobe$grades[-rowTrain], glm.predict.serum.grade.geneglobe)
+roc.rf.serum.grade.geneglobe= roc(serum.grade.covariates.geneglobe$grades[-rowTrain], rf.predict.serum.grade.geneglobe)
+auc = c(roc.glm.serum.grade.geneglobe$auc[1], roc.rf.serum.grade.geneglobe$auc[1])
+plot(roc.glm.serum.grade.geneglobe, legacy.axes = T)
+plot(roc.rf.serum.grade.geneglobe, add = T, col = 2)
+modelNames = c("logistic", "random forest")
+legend("bottomright", legend = paste0(modelNames, ":", round(auc,3)), col = 1:2, lwd = 2)
+
+# serum grade geNorm
+glm.serum.grade.geNorm = train(x = serum.grade.covariates.geNorm[rowTrain, -c(1, 59)],
+                                  y = serum.grade.covariates.geNorm$grades[rowTrain],
+                                  method = "glm",
+                                  metric = "ROC",
+                                  trControl = ctrl)
+
+rf.grid = expand.grid(mtry = 1:20,
+                      splitrule = "gini",
+                      min.node.size = 1:20)
+
+rf.serum.grade.geNorm = train(x = serum.grade.covariates.geNorm[rowTrain, -c(1, 59)],
+                                 y = serum.grade.covariates.geNorm$grades[rowTrain],
+                                 method = "ranger",
+                                 tuneGrid = rf.grid,
+                                 metric = "ROC",
+                                 trControl = ctrl)
+
+glm.predict.serum.grade.geNorm = predict(glm.serum.grade.geNorm, newdata = serum.grade.covariates.geNorm[-rowTrain,], type = "prob")[,2]
+rf.predict.serum.grade.geNorm = predict(rf.serum.grade.geNorm, newdata = serum.grade.covariates.geNorm[-rowTrain,], type = "prob")[,2]
+roc.glm.serum.grade.geNorm = roc(serum.grade.covariates.geNorm$grades[-rowTrain], glm.predict.serum.grade.geNorm)
+roc.rf.serum.grade.geNorm = roc(serum.grade.covariates.geNorm$grades[-rowTrain], rf.predict.serum.grade.geNorm)
+auc = c(roc.glm.serum.grade.geNorm$auc[1], roc.rf.serum.grade.geNorm$auc[1])
+plot(roc.glm.serum.grade.geNorm, legacy.axes = T)
+plot(roc.rf.serum.grade.geNorm, add = T, col = 2)
+modelNames = c("logistic", "random forest")
+legend("bottomright", legend = paste0(modelNames, ":", round(auc,3)), col = 1:2, lwd = 2)
 ```
 

@@ -1,0 +1,110 @@
+---
+title: "Univariate GLM for Biopsy Grade"
+author: "Jieqi Tu"
+date: "3/15/2021"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Method
+
+Biopsy grade groups were dichotomized as "Low" (if <=2) and "High" (if > 2).
+Univariate generalized linear models were used to detect association between dichotomous biopsy grades and all the serum and serum microRNAs. The logit link function was used when modeling. All the significance level was set as 0.05.
+
+```{r import dataset, include=FALSE}
+biopsy.grade = readxl::read_excel(path = "./data/3-1 data/GG_AP_ClinicalOutcomes_Biostats_Updated.xlsx", sheet = "Biopsy Grade Group")
+biopsy.grade$grades = ifelse(biopsy.grade$`Biopsy Grade Group` <= 2, "low", "high") %>% as.factor()
+biopsy.grade = biopsy.grade[,-2]
+serum = readxl::read_excel(path = "./data/Serum_AdjustedRQ_CT35_BioStats.xlsx", sheet = "geNorm NormFinder RQ")
+EV = readxl::read_excel(path = "./data/SerumEV_AdjustedRQ_CT35_BioStats.xlsx", sheet = "geNorm NormFinder RQ")
+```
+
+
+
+```{r data manipulation, include=FALSE}
+# Change the format
+
+# Serum
+new = t(serum)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+serum = new %>% as.data.frame()
+serum = rownames_to_column(serum)
+colnames(serum)[1] = "Patient ID"
+
+# EV
+new = t(EV)
+name_tmp <- new[1,]
+new <- new[-1,]
+new <- apply(new,1,as.numeric) %>% t()
+colnames(new) <- (name_tmp)
+EV = new %>% as.data.frame()
+EV = rownames_to_column(EV)
+colnames(EV)[1] = "Patient ID"
+```
+
+
+
+```{r combine dataset, include=FALSE}
+serum.new = left_join(serum, biopsy.grade, by = "Patient ID")
+EV.new = left_join(EV, biopsy.grade, by = "Patient ID")
+```
+
+## Results for Univariate Generalized Linear Models
+
+Since hsa-miR-130b-3p only have value 0, here we excluded this variable.
+
+```{r Univariate GLM, warning=FALSE}
+EV.new = EV.new[,-7]
+
+serum.result = data.frame(
+  microRNA = colnames(serum.new)[-c(1,63)],
+  coefficient.estimates = numeric(61),
+  standard.deviation = numeric(61),
+  p.value = numeric(61)
+)
+
+
+for (i in 1:61) {
+  model = glm(formula = serum.new$`grades`~serum.new[,i+1], family = "binomial")
+  result = summary(model)
+  serum.result$coefficient.estimates[i] = result$coefficients[2,1]
+  serum.result$standard.deviation[i] = result$coefficients[2,2]
+  serum.result$p.value[i] = result$coefficients[2,4]
+}
+
+EV.result = data.frame(
+  microRNA = colnames(EV.new)[-c(1,62)],
+  coefficient.estimates = numeric(60),
+  standard.deviation = numeric(60),
+  p.value = numeric(60)
+)
+
+for (i in 1:60) {
+  model = glm(formula = EV.new$`grades`~EV.new[,i+1], family = "binomial")
+  result = summary(model)
+  EV.result$coefficient.estimates[i] = result$coefficients[2,1]
+  EV.result$standard.deviation[i] = result$coefficients[2,2]
+  EV.result$p.value[i] = result$coefficients[2,4]
+}
+
+# Show the results
+serum.result = serum.result[order(serum.result$p.value),]; serum.result
+EV.result = EV.result[order(EV.result$p.value),]; EV.result
+
+# Print significant variables
+serum.result %>% 
+  filter(p.value <= 0.05)
+
+EV.result %>% 
+  filter(p.value <= 0.05)
+```
+
