@@ -28,7 +28,7 @@ EV.NormFinder = readxl::read_excel(path = "./data/3-1 data/SerumEVCT33_RQMASKS.x
 
 
 ## Data manipulation
-```{r data manipulation}
+```{r data manipulation1}
 # Serum Overlap
 new = t(serum.overlap)
 name_tmp <- new[1,]

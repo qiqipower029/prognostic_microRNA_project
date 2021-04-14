@@ -108,3 +108,76 @@ EV.result %>%
   filter(p.value <= 0.05)
 ```
 
+## Variable selection 
+
+We now first look into the model fitting 
+```{r variable selection for serum miRNAs}
+# Variable selection for serum miRNAs
+library(MASS)
+fullmodel.serum = glm(grades~`hsa-miR-18b-5p`+`hsa-miR-1246` +`hsa-miR-363-3p` + `hsa-miR-16-5p` + `hsa-miR-320a` + `hsa-miR-301a-3p` + `hsa-miR-27a-3p` + `hsa-miR-146a-5p`, family = "binomial", data = serum.new)
+serum.step = stepAIC(object = fullmodel.serum, direction = "backward")
+finalmodel.serum = glm(grades~`hsa-miR-18b-5p` +`hsa-miR-363-3p` + `hsa-miR-320a` + `hsa-miR-301a-3p`, family = "binomial", data = serum.new)
+summary(finalmodel.serum)
+
+# Variable selection for EM serum miRNAs
+fullmodel.EV = glm(grades~`hsa-miR-19b-3p` + `hsa-miR-451a` + `hsa-miR-143-3p` + `hsa-miR-25-3p` + `hsa-miR-210-3p` + `hsa-miR-874-3p` + 
+                     `hsa-miR-363-3p` + `hsa-miR-18b-5p` + `hsa-miR-222-3p` + `hsa-miR-30a-5p`, family = "binomial", data = serum.new)
+EV.step = stepAIC(object = fullmodel.EV, direction = "backward")
+finalmodel.EV = glm(grades~`hsa-miR-18b-5p`  + `hsa-miR-25-3p` + `hsa-miR-363-3p`, family = "binomial", data = EV.new)
+summary(finalmodel.EV)
+```
+
+
+## Classification
+```{r classification}
+library(caret)
+library(pROC)
+set.seed(1029)
+rowTrain = createDataPartition(y = serum.new$grades,
+                               p = 0.75,
+                               list = FALSE)
+
+ctrl = trainControl(method = "repeatedcv",
+                    repeats = 5,
+                    summaryFunction = twoClassSummary,
+                    classProbs = TRUE)
+
+# Get column numbers for best predictors for serum miRNAs
+which(colnames(serum.new)=="hsa-miR-363-3p")
+which(colnames(serum.new)=="hsa-miR-18b-5p")
+which(colnames(serum.new)=="hsa-miR-301a-3p")
+which(colnames(serum.new)=="hsa-miR-320a")
+
+# Logistic regression
+glm.serum = train(x = serum.new[rowTrain, c(37, 20, 31, 32)],
+                                  y = serum.new$grades[rowTrain],
+                                  method = "glm",
+                                  metric = "ROC",
+                                  trControl = ctrl)
+
+# See the prediction performance
+glm.predict = predict(glm.serum, newdata = serum.new[-rowTrain,], type = "prob")[,2]
+roc.glm.serum = roc(serum.new$grades[-rowTrain], glm.predict)
+plot(roc.glm.serum, legacy.axes = T, print.auc = T)
+
+# Get column numbers for best predictors for EV serum miRNAs
+which(colnames(EV.new)=="hsa-miR-18b-5p")
+which(colnames(EV.new)=="hsa-miR-25-3p")
+which(colnames(EV.new)=="hsa-miR-363-3p")
+
+# Logistic regression
+rowTrain = createDataPartition(y = EV.new$grades,
+                               p = 0.75,
+                               list = FALSE)
+glm.EV = train(x = EV.new[rowTrain, c(19, 55, 36)],
+                                  y = EV.new$grades[rowTrain],
+                                  method = "glm",
+                                  metric = "ROC",
+                                  trControl = ctrl)
+
+# See the prediction performance
+glm.predict.EV = predict(glm.EV, newdata = EV.new[-rowTrain,], type = "prob")[,2]
+roc.glm.EV = roc(EV.new$grades[-rowTrain], glm.predict.EV)
+plot(roc.glm.EV, legacy.axes = T, print.auc = T)
+```
+
